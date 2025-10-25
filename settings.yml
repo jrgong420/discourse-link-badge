@@ -66,3 +66,15 @@ coupons_badge_icon:
 show_badge_labels:
   type: bool
   default: true
+
+hide_click_counter:
+  type: bool
+  default: false
+
+debug_logging_badges:
+  type: bool
+  default: false
+
+debug_logging_modal:
+  type: bool
+  default: false

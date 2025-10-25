@@ -5,6 +5,18 @@ en:
       coupons_badge:
         one: "%{count} coupon available"
         other: "%{count} coupons available"
+      modal:
+        title: "Shop details: %{domain}"
+        verified: "Verified merchant"
+        unverified: "Unverified"
+        coupons_heading: "Available coupons"
+        no_coupons: "No coupons available at this time"
+        copy_code: "Copy code"
+        copied: "Copied!"
+        shop_review: "Read shop review"
+        coupon:
+          terms: "Terms"
+          expires: "Expires"
 
   theme_metadata:
     description: Adds dynamic merchant verification and coupon badges to links in posts and chat
@@ -18,3 +30,6 @@ en:
       verified_badge_icon: "Icon name for the 'Verified merchant' badge (e.g., far-check-circle, shield-alt, certificate)"
       coupons_badge_icon: "Icon name for the coupon badge (e.g., tags, ticket-alt, percent, gift)"
       show_badge_labels: "Show text labels next to icons (disable for icon-only badges)"
+      hide_click_counter: "Hide Discourse's default click counter on merchant badge links"
+      debug_logging_badges: "Enable verbose console logging for badge rendering and click events (for debugging)"
+      debug_logging_modal: "Enable verbose console logging for modal opening, rendering, and data (for debugging)"

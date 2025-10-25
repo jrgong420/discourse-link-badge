@@ -9,6 +9,13 @@ a[data-merchant-badges-added="true"] {
   display: inline-block;
 }
 
+// Hide Discourse's default click counter on merchant badge links when setting is enabled
+@if $hide-click-counter {
+  a[data-merchant-badges-added="true"][data-clicks]::after {
+    display: none;
+  }
+}
+
 span.merchant-badges {
   font-weight: normal;
   color: var(--primary-medium);
@@ -77,5 +84,165 @@ span.merchant-badges {
   // Label spacing
   &__label {
     margin-left: var(--space-1);
+  }
+}
+
+// Merchant Modal Styles
+.merchant-modal {
+  padding: var(--space-3);
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    margin-bottom: var(--space-3);
+    padding-bottom: var(--space-2);
+    border-bottom: 1px solid var(--primary-low);
+  }
+
+  &__domain {
+    margin: 0;
+    font-size: var(--font-up-1);
+    color: var(--primary);
+    word-break: break-word;
+  }
+
+  &__verified-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding: 0.35em 0.75em;
+    border-radius: var(--border-radius);
+    font-size: var(--font-down-1);
+    white-space: nowrap;
+
+    &--verified {
+      background-color: var(--success-low);
+      color: var(--success);
+    }
+
+    &--unverified {
+      background-color: var(--primary-very-low);
+      color: var(--primary-medium);
+    }
+  }
+
+  &__icon {
+    display: inline-flex;
+    align-items: center;
+
+    svg {
+      width: 1em;
+      height: 1em;
+    }
+  }
+
+  &__source {
+    margin-bottom: var(--space-3);
+    padding: var(--space-2);
+    background-color: var(--primary-very-low);
+    border-radius: var(--border-radius);
+  }
+
+  &__source-link {
+    color: var(--tertiary);
+    word-break: break-all;
+    font-size: var(--font-down-1);
+  }
+
+  &__section {
+    margin-bottom: var(--space-3);
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  &__section-title {
+    margin: 0 0 var(--space-2) 0;
+    font-size: var(--font-0);
+    color: var(--primary);
+  }
+
+  &__coupons {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  &__coupon {
+    padding: var(--space-3);
+    background-color: var(--primary-very-low);
+    border: 1px solid var(--primary-low);
+    border-radius: var(--border-radius);
+  }
+
+  &__coupon-header {
+    margin-bottom: var(--space-2);
+  }
+
+  &__coupon-code-wrapper {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-1);
+  }
+
+  &__coupon-code {
+    display: inline-block;
+    padding: 0.5em 0.75em;
+    background-color: var(--secondary);
+    border: 1px solid var(--primary-low);
+    border-radius: var(--border-radius);
+    font-family: var(--font-family-monospace, monospace);
+    font-size: var(--font-0);
+    color: var(--primary);
+    font-weight: bold;
+  }
+
+  &__copy-btn {
+    flex-shrink: 0;
+  }
+
+  &__coupon-title {
+    font-weight: bold;
+    color: var(--primary);
+    font-size: var(--font-0);
+  }
+
+  &__coupon-terms,
+  &__coupon-expires {
+    font-size: var(--font-down-1);
+    color: var(--primary-medium);
+    margin-top: var(--space-1);
+  }
+
+  &__no-coupons {
+    color: var(--primary-medium);
+    font-style: italic;
+    margin: 0;
+  }
+
+  &__shop-review-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding: var(--space-2) var(--space-3);
+    background-color: var(--tertiary-low);
+    color: var(--tertiary);
+    border-radius: var(--border-radius);
+    text-decoration: none;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+      background-color: var(--tertiary-very-low);
+      text-decoration: none;
+    }
+
+    svg {
+      width: 1em;
+      height: 1em;
+    }
   }
 }
