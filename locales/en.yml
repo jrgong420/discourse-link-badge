@@ -15,3 +15,6 @@ en:
       apply_to_chat: "Also enable badges in Discourse Chat messages"
       show_verified_badge: "Display 'Verified merchant' badge"
       show_coupons_badge: "Display coupon count badge"
+      verified_badge_icon: "Icon name for the 'Verified merchant' badge (e.g., far-check-circle, shield-alt, certificate)"
+      coupons_badge_icon: "Icon name for the coupon badge (e.g., tags, ticket-alt, percent, gift)"
+      show_badge_labels: "Show text labels next to icons (disable for icon-only badges)"

@@ -54,3 +54,15 @@ show_verified_badge:
 show_coupons_badge:
   type: bool
   default: true
+
+verified_badge_icon:
+  type: string
+  default: "far-check-circle"
+
+coupons_badge_icon:
+  type: string
+  default: "tags"
+
+show_badge_labels:
+  type: bool
+  default: true

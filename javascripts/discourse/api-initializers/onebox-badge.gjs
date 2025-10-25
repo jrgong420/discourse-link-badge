@@ -1,4 +1,5 @@
 import { apiInitializer } from "discourse/lib/api";
+import { iconHTML } from "discourse-common/lib/icon-library";
 import { i18n } from "discourse-i18n";
 
 const BADGE_MARKER = "data-merchant-badges-added";
@@ -69,7 +70,25 @@ function buildMerchantBadges(merchant, showVerified, showCoupons) {
     btn.className = "merchant-badge merchant-badge--verified";
     const label = i18n(themePrefix("js.merchant.verified_badge"));
     btn.setAttribute("aria-label", label);
-    btn.textContent = label;
+
+    // Inject icon
+    const iconName = settings.verified_badge_icon || "far-check-circle";
+    btn.innerHTML = iconHTML(iconName);
+    const svg = btn.querySelector("svg");
+    if (svg) {
+      svg.setAttribute("aria-hidden", "true");
+    }
+
+    // Conditionally add text label
+    if (settings.show_badge_labels) {
+      const span = document.createElement("span");
+      span.className = "merchant-badge__label";
+      span.textContent = label;
+      btn.appendChild(span);
+    } else {
+      btn.classList.add("merchant-badge--icon-only");
+    }
+
     btn.addEventListener("click", clickHandler);
     container.appendChild(btn);
   }
@@ -80,7 +99,25 @@ function buildMerchantBadges(merchant, showVerified, showCoupons) {
     btn.className = "merchant-badge merchant-badge--coupons";
     const label = i18n(themePrefix("js.merchant.coupons_badge"), { count: couponsCount });
     btn.setAttribute("aria-label", label);
-    btn.textContent = label;
+
+    // Inject icon
+    const iconName = settings.coupons_badge_icon || "tags";
+    btn.innerHTML = iconHTML(iconName);
+    const svg = btn.querySelector("svg");
+    if (svg) {
+      svg.setAttribute("aria-hidden", "true");
+    }
+
+    // Conditionally add text label
+    if (settings.show_badge_labels) {
+      const span = document.createElement("span");
+      span.className = "merchant-badge__label";
+      span.textContent = label;
+      btn.appendChild(span);
+    } else {
+      btn.classList.add("merchant-badge--icon-only");
+    }
+
     btn.addEventListener("click", clickHandler);
     container.appendChild(btn);
   }
@@ -141,20 +178,13 @@ export default apiInitializer((api) => {
             if (merchant) {
               link.setAttribute(BADGE_MARKER, "true");
 
-              // Create a mount element and insert after the link
-              const mount = document.createElement("span");
-              mount.className = "merchant-badges";
-              link.insertAdjacentElement("afterend", mount);
-
-              // Build and insert badges DOM (topic-promo pattern)
+              // Build badges DOM
               const badges = buildMerchantBadges(merchant, showVerified, showCoupons);
               if (badges) {
-                mount.replaceWith(badges);
+                // Insert badges inside the link at the end
+                link.appendChild(badges);
                 // eslint-disable-next-line no-console
                 console.log("[Merchant Badges] Rendered badges for:", link.href);
-              } else {
-                // No visible badges, remove empty mount
-                mount.remove();
               }
             }
           }
@@ -189,20 +219,13 @@ export default apiInitializer((api) => {
           if (merchant) {
             link.setAttribute(BADGE_MARKER, "true");
 
-            // Create a mount element and insert after the link
-            const mount = document.createElement("span");
-            mount.className = "merchant-badges";
-            link.insertAdjacentElement("afterend", mount);
-
-            // Build and insert badges DOM (topic-promo pattern)
+            // Build badges DOM
             const badges = buildMerchantBadges(merchant, showVerified, showCoupons);
             if (badges) {
-              mount.replaceWith(badges);
+              // Insert badges inside the link at the end
+              link.appendChild(badges);
               // eslint-disable-next-line no-console
               console.log("[Merchant Badges] Rendered badges for:", link.href);
-            } else {
-              // No visible badges, remove empty mount
-              mount.remove();
             }
           }
         });

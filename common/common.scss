@@ -1,9 +1,26 @@
 // Merchant Badges Styles
-.merchant-badges {
+
+// Style links that contain merchant badges
+a[data-merchant-badges-added="true"] {
+  border: 1px solid var(--tertiary);
+  color: var(--tertiary);
+  padding: 0 0.42em;
+  border-radius: 10px;
+  display: inline-block;
+}
+
+span.merchant-badges {
+  font-weight: normal;
+  color: var(--primary-medium);
+  position: relative;
+  min-width: 0.5em;
+  line-height: var(--line-height-small);
+  font-size: var(--font-down-2);
+  text-align: center;
+  white-space: nowrap;
   display: inline-flex;
   gap: var(--space-1);
   margin-left: var(--space-1);
-  vertical-align: middle;
 }
 
 .merchant-badge {
@@ -11,19 +28,21 @@
   align-items: center;
   padding: 0.25em 0.5em;
   font-size: var(--font-down-1);
-  line-height: 1.2;
-  border-radius: var(--border-radius);
+  line-height: 1;
   border: 1px solid transparent;
-  background: var(--primary-very-low);
   color: var(--primary);
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
 
+  svg {
+    width: 1em;
+    height: 1em;
+    vertical-align: -0.125em;
+  }
+
   &:hover {
-    background: var(--primary-low);
     transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgb(0, 0, 0, 0.1);
   }
 
   &:focus {
@@ -37,32 +56,26 @@
 
   // Verified merchant badge
   &--verified {
-    background: var(--success-low);
-    color: var(--success);
-    border-color: var(--success-medium);
-
-    &:hover {
-      background: var(--success);
-      color: var(--secondary);
-    }
+    background-color: var(--success);
+    color: var(--success-low);
+    border-radius: 3px;
   }
 
   // Coupons badge
   &--coupons {
-    background: var(--tertiary-low);
-    color: var(--tertiary);
-    border-color: var(--tertiary-medium);
-
-    &:hover {
-      background: var(--tertiary);
-      color: var(--secondary);
-    }
+    color: var(--primary-50);
+    background-color: var(--quaternary);
+    border-radius: 3px;
   }
-}
 
-// Ensure badges don't break layout in oneboxes
-aside.onebox {
-  .merchant-badges {
-    margin-left: var(--space-2);
+  // Icon-only mode
+  &--icon-only {
+    padding: 0.35em;
+    justify-content: center;
+  }
+
+  // Label spacing
+  &__label {
+    margin-left: var(--space-1);
   }
 }
