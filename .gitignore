@@ -1,2 +1,7 @@
 node_modules
 .discourse-site
+
+# Augment agent working dir
+.augment/
+# macOS Finder files
+.DS_Store

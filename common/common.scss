@@ -1,0 +1,68 @@
+// Merchant Badges Styles
+.merchant-badges {
+  display: inline-flex;
+  gap: var(--space-1);
+  margin-left: var(--space-1);
+  vertical-align: middle;
+}
+
+.merchant-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25em 0.5em;
+  font-size: var(--font-down-1);
+  line-height: 1.2;
+  border-radius: var(--border-radius);
+  border: 1px solid transparent;
+  background: var(--primary-very-low);
+  color: var(--primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+
+  &:hover {
+    background: var(--primary-low);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgb(0, 0, 0, 0.1);
+  }
+
+  &:focus {
+    outline: 2px solid var(--tertiary);
+    outline-offset: 2px;
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  // Verified merchant badge
+  &--verified {
+    background: var(--success-low);
+    color: var(--success);
+    border-color: var(--success-medium);
+
+    &:hover {
+      background: var(--success);
+      color: var(--secondary);
+    }
+  }
+
+  // Coupons badge
+  &--coupons {
+    background: var(--tertiary-low);
+    color: var(--tertiary);
+    border-color: var(--tertiary-medium);
+
+    &:hover {
+      background: var(--tertiary);
+      color: var(--secondary);
+    }
+  }
+}
+
+// Ensure badges don't break layout in oneboxes
+aside.onebox {
+  .merchant-badges {
+    margin-left: var(--space-2);
+  }
+}

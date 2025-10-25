@@ -1,5 +1,17 @@
 en:
+  js:
+    merchant:
+      verified_badge: "Verified merchant"
+      coupons_badge:
+        one: "%{count} coupon available"
+        other: "%{count} coupons available"
+
   theme_metadata:
-    description: Adds one or more badges to external links and oneboxes
+    description: Adds dynamic merchant verification and coupon badges to links in posts and chat
     settings:
-      example_setting: A description of a setting.
+      merchants: "Merchant configurations (domain, verified status, coupons)"
+      apply_to_oneboxes: "Show badges on onebox link previews"
+      apply_to_text_links: "Show badges on plain text links in posts"
+      apply_to_chat: "Also enable badges in Discourse Chat messages"
+      show_verified_badge: "Display 'Verified merchant' badge"
+      show_coupons_badge: "Display coupon count badge"

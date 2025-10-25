@@ -1,2 +1,56 @@
-example_setting:
+merchants:
+  type: objects
+  default: []
+  schema:
+    name: merchant
+    identifier: domain
+    properties:
+      domain:
+        type: string
+        required: true
+        validations:
+          min_length: 3
+      verified:
+        type: boolean
+        default: false
+      shop_review_topic_id:
+        type: integer
+        default: 0
+      coupons:
+        type: objects
+        default: []
+        schema:
+          name: coupon
+          properties:
+            code:
+              type: string
+              required: true
+            title:
+              type: string
+              default: ""
+            terms:
+              type: string
+              default: ""
+            expires_at:
+              type: string
+              default: ""
+
+apply_to_oneboxes:
+  type: bool
+  default: true
+
+apply_to_text_links:
+  type: bool
+  default: true
+
+apply_to_chat:
+  type: bool
+  default: false
+
+show_verified_badge:
+  type: bool
+  default: true
+
+show_coupons_badge:
+  type: bool
   default: true
