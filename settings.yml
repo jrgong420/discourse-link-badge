@@ -22,9 +22,6 @@ merchants:
       shop_review_topic_id:
         type: integer
         default: 0
-      shop_rating_topic_id:
-        type: integer
-        default: 0
       coupons:
         type: objects
         default: []

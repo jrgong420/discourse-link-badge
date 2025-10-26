@@ -24,7 +24,7 @@ en:
   theme_metadata:
     description: Display merchant verification badges and coupons on links in posts, oneboxes, and chat with interactive modals
     settings:
-      merchants: "Merchant configurations (domain, verified status, user profile, ratings, coupons). New fields: user_id (Discourse user ID for avatar/username display), title (fallback display name), shop_rating_topic_id (topic ID for star rating calculation)"
+      merchants: "Merchant configurations (domain, verified status, user profile, ratings, coupons). New fields: user_id (Discourse user ID for avatar/username display), title (fallback display name), shop_review_topic_id (topic ID for shop reviews and star rating calculation via Topic Ratings plugin)"
       apply_to_oneboxes: "Show badges on onebox link previews"
       apply_to_text_links: "Show badges on plain text links in posts"
       apply_to_chat: "Also enable badges in Discourse Chat messages"

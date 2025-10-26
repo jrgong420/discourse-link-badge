@@ -144,7 +144,7 @@ export default class MerchantBadgeModal extends Component {
   }
 
   async loadRating() {
-    const topicId = this.merchant?.shop_rating_topic_id;
+    const topicId = this.merchant?.shop_review_topic_id;
     if (!topicId || topicId <= 0) {
       return;
     }
