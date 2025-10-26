@@ -101,7 +101,36 @@ The theme uses Discourse's CSS custom properties for seamless integration with a
 - Badges use `--tertiary`, `--success`, `--primary-low` colors
 - Responsive design with mobile-optimized layouts
 - Smooth hover animations and transitions
-- Pill-shaped badges with consistent spacing
+
+### Style Selection
+
+Choose from four distinct visual styles via the `merchant_link_style` setting:
+
+#### Pill (Default)
+- Rounded badge with subtle shadow
+- Elevated appearance with hover lift effect
+- Best for prominent merchant highlighting
+- Mobile-optimized with inline wrapping
+
+#### Underline
+- Minimal text-first approach
+- Subtle underline with verified icon
+- Transparent background
+- Perfect for content-focused layouts
+
+#### Label
+- Soft filled label with small border radius
+- Subtle background color (`--primary-very-low`)
+- Clean, modern appearance
+- Balanced between pill and ghost styles
+
+#### Ghost
+- Outline-only design with transparent background
+- Minimal visual weight
+- Hover reveals soft fill
+- Ideal for ultra-clean, minimalist themes
+
+All styles use Discourse core CSS variables for colors, spacing, and borders, ensuring compatibility with any color scheme.
 
 ### Custom CSS
 

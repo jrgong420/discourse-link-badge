@@ -67,6 +67,15 @@ show_badge_labels:
   type: bool
   default: true
 
+merchant_link_style:
+  type: enum
+  default: "pill"
+  choices:
+    - pill
+    - underline
+    - label
+    - ghost
+
 hide_click_counter:
   type: bool
   default: false
