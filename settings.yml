@@ -13,7 +13,16 @@ merchants:
       verified:
         type: boolean
         default: false
+      user_id:
+        type: integer
+        default: 0
+      title:
+        type: string
+        default: ""
       shop_review_topic_id:
+        type: integer
+        default: 0
+      shop_rating_topic_id:
         type: integer
         default: 0
       coupons:
@@ -47,6 +56,10 @@ apply_to_chat:
   type: bool
   default: false
 
+verified_links_categories:
+  type: list
+  default: ""
+
 show_verified_badge:
   type: bool
   default: true
@@ -76,9 +89,9 @@ merchant_link_style:
     - label
     - ghost
 
-hide_click_counter:
+hide_click_counter_globally:
   type: bool
-  default: false
+  default: true
 
 debug_logging_badges:
   type: bool
@@ -87,3 +100,7 @@ debug_logging_badges:
 debug_logging_modal:
   type: bool
   default: false
+
+modal_follow_link_label:
+  type: string
+  default: ""

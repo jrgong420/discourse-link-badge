@@ -14,6 +14,9 @@ en:
         copy_code: "Copy code"
         copied: "Copied!"
         shop_review: "Read shop review"
+        follow_link: "Follow to link"
+        visit_domain: "Visit %{domain}"
+        rating_label: "%{rating} out of 5 stars"
         coupon:
           terms: "Terms"
           expires: "Expires"
@@ -21,16 +24,19 @@ en:
   theme_metadata:
     description: Display merchant verification badges and coupons on links in posts, oneboxes, and chat with interactive modals
     settings:
-      merchants: "Merchant configurations (domain, verified status, coupons)"
+      merchants: "Merchant configurations (domain, verified status, user profile, ratings, coupons). New fields: user_id (Discourse user ID for avatar/username display), title (fallback display name), shop_rating_topic_id (topic ID for star rating calculation)"
       apply_to_oneboxes: "Show badges on onebox link previews"
       apply_to_text_links: "Show badges on plain text links in posts"
       apply_to_chat: "Also enable badges in Discourse Chat messages"
+      verified_links_categories: "Categories (by ID) where verified link badges appear. Enter IDs separated by | (e.g., 1|2|3). If empty, badges apply in all categories"
+
       show_verified_badge: "Display 'Verified merchant' badge"
       show_coupons_badge: "Display coupon count badge"
       verified_badge_icon: "Icon name for the 'Verified merchant' badge (e.g., far-check-circle, shield-alt, certificate)"
       coupons_badge_icon: "Icon name for the coupon badge (e.g., tags, ticket-alt, percent, gift)"
       show_badge_labels: "Show text labels next to icons (disable for icon-only badges)"
       merchant_link_style: "Visual style for merchant links (pill: rounded badge with shadow; underline: subtle underline with icon; label: soft filled label; ghost: outline-only with transparent background)"
-      hide_click_counter: "Hide Discourse's default click counter on merchant badge links"
+      hide_click_counter_globally: "Hide Discourse's default click counter on matched merchant links site-wide (global; not limited by 'Verified links categories')"
+      modal_follow_link_label: "Custom label for the modal's primary 'Follow Link' button (leave empty to use default translation)"
       debug_logging_badges: "Enable verbose console logging for badge rendering and click events (for debugging)"
       debug_logging_modal: "Enable verbose console logging for modal opening, rendering, and data (for debugging)"

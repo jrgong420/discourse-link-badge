@@ -30,7 +30,10 @@ Configure merchants using the `merchants` setting (structured objects):
 ```yaml
 domain: example.com
 verified: true
-shop_review_topic_id: 123
+user_id: 42                    # Optional: Discourse user ID for avatar/username display
+title: "Example Shop"          # Optional: Fallback display name when no user_id
+shop_review_topic_id: 123      # Optional: Topic ID for shop reviews (legacy)
+shop_rating_topic_id: 456      # Optional: Topic ID for star rating calculation (Topic Ratings plugin)
 coupons:
   - code: SAVE20
     title: 20% Off Sitewide
@@ -41,6 +44,11 @@ coupons:
     terms: Orders over $25
     expires_at: 2025-06-30
 ```
+
+**New Fields:**
+- `user_id` (integer, default: 0): Associate merchant with a Discourse user. When set, the modal displays the user's avatar and username (linked to their profile). If 0 or user not found, falls back to `title` or `domain`.
+- `title` (string, default: ""): Fallback display name when `user_id` is not set or user lookup fails.
+- `shop_rating_topic_id` (integer, default: 0): Topic ID where shop ratings are collected via the Topic Ratings plugin. The modal fetches this topic, calculates the average rating from all rating aspects, and displays it as stars next to the merchant name.
 
 **Fields:**
 - `domain` (required): Merchant domain (e.g., `example.com`, matches `www.example.com` and subdomains)
@@ -67,6 +75,12 @@ coupons:
 | `verified_badge_icon` | string | `far-check-circle` | FontAwesome icon for verified badge |
 | `coupons_badge_icon` | string | `tags` | FontAwesome icon for coupons badge |
 
+### Modal Settings
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `modal_follow_link_label` | string | `""` | Custom label for the modal's primary "Follow Link" button (leave empty to use default translation) |
+
 ### Debug Settings
 
 | Setting | Type | Default | Description |
@@ -89,10 +103,11 @@ Paste a merchant URL on its own line to create an onebox preview with badges in 
 
 ### Interactive Modal
 Click any badge to open a modal showing:
-- Merchant domain and verification status
-- Source URL
-- Available coupons with copy-to-clipboard buttons
-- Link to shop review topic (if configured)
+- Merchant profile (user avatar/username or title) and verification status
+- Star rating (if configured via Topic Ratings plugin)
+- Source URL with friendly link text
+- Available coupons with copy-to-clipboard buttons and localized expiration dates
+- Primary "Follow Link" button to open merchant URL in new tab
 
 ## Styling
 

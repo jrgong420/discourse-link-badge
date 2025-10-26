@@ -4,6 +4,7 @@ import { i18n } from "discourse-i18n";
 import MerchantBadgeModal from "../components/merchant-badge-modal";
 
 const BADGE_MARKER = "data-merchant-badges-added";
+const MERCHANT_LINK_MARKER = "data-merchant-link";
 
 // Known affiliate redirect patterns: tracking host -> parameter names containing target URL
 const TRACKING_PATTERNS = new Map([
@@ -16,6 +17,18 @@ const merchantCache = new Map();
 
 // Maximum recursion depth for nested redirect URLs
 const MAX_REDIRECT_DEPTH = 2;
+
+// Category filter: parse selected category IDs once; null = apply to all categories
+const ENABLED_CATEGORY_IDS = (() => {
+  const raw = (settings.verified_links_categories || "").trim();
+  if (!raw) return null;
+  const ids = raw
+    .split("|")
+    .map((s) => parseInt(s, 10))
+    .filter((n) => Number.isInteger(n) && n > 0);
+  if (ids.length === 0) return null;
+  return new Set(ids);
+})();
 
 /**
  * Safely parse a URL string
@@ -378,6 +391,22 @@ export default apiInitializer((api) => {
       }
 
       const debugBadges = settings.debug_logging_badges;
+      // Determine if badges should be displayed in this category (gates badges only, not merchant link marking)
+      let badgesAllowed = true;
+      if (ENABLED_CATEGORY_IDS) {
+        const topic = api.container.lookup("controller:topic")?.model;
+        const categoryId = topic?.category_id || topic?.category?.id;
+        badgesAllowed = !!categoryId && ENABLED_CATEGORY_IDS.has(categoryId);
+        if (debugBadges) {
+          // eslint-disable-next-line no-console
+          console.log("[Merchant Badges] Category gating", {
+            categoryId,
+            badgesAllowed,
+            enabled: Array.from(ENABLED_CATEGORY_IDS),
+          });
+        }
+      }
+
       const debugModal = settings.debug_logging_modal;
 
       if (debugBadges) {
@@ -429,7 +458,7 @@ export default apiInitializer((api) => {
             console.log("[Merchant Badges] Onebox link:", link?.href);
           }
 
-          if (link && !link.hasAttribute(BADGE_MARKER)) {
+          if (link) {
             const merchant = findMerchant(link.href, merchants, debugBadges);
 
             if (debugBadges) {
@@ -438,16 +467,22 @@ export default apiInitializer((api) => {
             }
 
             if (merchant) {
-              link.setAttribute(BADGE_MARKER, "true");
+              // Mark as merchant link globally (used by CSS to hide click counters site-wide)
+              link.setAttribute(MERCHANT_LINK_MARKER, "true");
 
-              // Build badges DOM (unified trailing container)
-              const badges = buildMerchantBadges(merchant, showVerified, showCoupons, modal, link.href, debugModal);
-              if (badges?.trailing) {
-                link.appendChild(badges.trailing);
+              // Append badges only if allowed for this category and not already added
+              if (!link.hasAttribute(BADGE_MARKER) && badgesAllowed) {
+                link.setAttribute(BADGE_MARKER, "true");
 
-                if (debugBadges) {
-                  // eslint-disable-next-line no-console
-                  console.log("[Merchant Badges] Rendered badges for:", link.href);
+                // Build badges DOM (unified trailing container)
+                const badges = buildMerchantBadges(merchant, showVerified, showCoupons, modal, link.href, debugModal);
+                if (badges?.trailing) {
+                  link.appendChild(badges.trailing);
+
+                  if (debugBadges) {
+                    // eslint-disable-next-line no-console
+                    console.log("[Merchant Badges] Rendered badges for:", link.href);
+                  }
                 }
               }
             }
@@ -467,11 +502,8 @@ export default apiInitializer((api) => {
         }
 
         links.forEach((link) => {
-          // Skip if already processed or inside onebox
-          if (
-            link.hasAttribute(BADGE_MARKER) ||
-            link.closest("aside.onebox")
-          ) {
+          // Skip links that are inside oneboxes (handled above)
+          if (link.closest("aside.onebox")) {
             return;
           }
 
@@ -488,16 +520,22 @@ export default apiInitializer((api) => {
           }
 
           if (merchant) {
-            link.setAttribute(BADGE_MARKER, "true");
+            // Mark as merchant link globally (used by CSS to hide click counters site-wide)
+            link.setAttribute(MERCHANT_LINK_MARKER, "true");
 
-            // Build badges DOM (unified trailing container)
-            const badges = buildMerchantBadges(merchant, showVerified, showCoupons, modal, link.href, debugModal);
-            if (badges?.trailing) {
-              link.appendChild(badges.trailing);
+            // Append badges only if allowed for this category and not already added
+            if (!link.hasAttribute(BADGE_MARKER) && badgesAllowed) {
+              link.setAttribute(BADGE_MARKER, "true");
 
-              if (debugBadges) {
-                // eslint-disable-next-line no-console
-                console.log("[Merchant Badges] Rendered badges for:", link.href);
+              // Build badges DOM (unified trailing container)
+              const badges = buildMerchantBadges(merchant, showVerified, showCoupons, modal, link.href, debugModal);
+              if (badges?.trailing) {
+                link.appendChild(badges.trailing);
+
+                if (debugBadges) {
+                  // eslint-disable-next-line no-console
+                  console.log("[Merchant Badges] Rendered badges for:", link.href);
+                }
               }
             }
           }
