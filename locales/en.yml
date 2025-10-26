@@ -17,6 +17,10 @@ en:
         follow_link: "Follow to link"
         visit_domain: "Visit %{domain}"
         rating_label: "%{rating} out of 5 stars"
+        reviews_count:
+          one: "%{count} rating"
+          other: "%{count} ratings"
+        reviews_link: "Ratings"
         coupon:
           terms: "Terms"
           expires: "Expires"

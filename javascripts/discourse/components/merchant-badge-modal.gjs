@@ -11,6 +11,7 @@ import { formatDate } from "discourse/lib/formatter";
 import { i18n } from "discourse-i18n";
 
 // Cache for topic rating data (keyed by topic_id)
+// Structure: { ratingValue: number, ratingCount: number }
 const ratingCache = new Map();
 
 export default class MerchantBadgeModal extends Component {
@@ -98,6 +99,41 @@ export default class MerchantBadgeModal extends Component {
     });
   }
 
+  get hasShopReviewTopic() {
+    const topicId = this.merchant?.shop_review_topic_id;
+    return topicId && topicId > 0;
+  }
+
+  get shopReviewUrl() {
+    if (!this.hasShopReviewTopic) {
+      return null;
+    }
+    return `/t/${this.merchant.shop_review_topic_id}`;
+  }
+
+  get shopReviewLinkText() {
+    if (!this.hasShopReviewTopic) {
+      return "";
+    }
+
+    // If we have rating data, show count-based text
+    if (this.hasRating) {
+      // Get the topic to extract rating count
+      const topicId = this.merchant.shop_review_topic_id;
+      const cachedTopic = this.getCachedTopic(topicId);
+      const count = cachedTopic?.ratingCount || 0;
+
+      if (count > 0) {
+        return i18n(themePrefix("js.merchant.modal.reviews_count"), {
+          count,
+        });
+      }
+    }
+
+    // Fallback: just "Ratings"
+    return i18n(themePrefix("js.merchant.modal.reviews_link"));
+  }
+
   get fullStars() {
     if (!this.hasRating) {
       return [];
@@ -143,6 +179,10 @@ export default class MerchantBadgeModal extends Component {
     }
   }
 
+  getCachedTopic(topicId) {
+    return ratingCache.get(topicId);
+  }
+
   async loadRating() {
     const topicId = this.merchant?.shop_review_topic_id;
     if (!topicId || topicId <= 0) {
@@ -151,16 +191,17 @@ export default class MerchantBadgeModal extends Component {
 
     // Check cache first
     if (ratingCache.has(topicId)) {
-      this.ratingValue = ratingCache.get(topicId);
+      const cached = ratingCache.get(topicId);
+      this.ratingValue = cached.ratingValue;
       return;
     }
 
     this.ratingLoading = true;
     try {
       const topic = await ajax(`/t/${topicId}.json`);
-      const rating = this.calculateAverageRating(topic);
-      this.ratingValue = rating;
-      ratingCache.set(topicId, rating);
+      const ratingData = this.calculateAverageRating(topic);
+      this.ratingValue = ratingData.ratingValue;
+      ratingCache.set(topicId, ratingData);
     } catch (error) {
       // eslint-disable-next-line no-console
       console.warn("[Merchant Modal] Could not load rating:", error);
@@ -174,7 +215,7 @@ export default class MerchantBadgeModal extends Component {
     // Topic Ratings plugin stores rating data in custom_fields
     const customFields = topic?.custom_fields;
     if (!customFields) {
-      return null;
+      return { ratingValue: null, ratingCount: 0 };
     }
 
     // Try to find rating aspects (plugin may serialize as JSON or individual fields)
@@ -183,14 +224,17 @@ export default class MerchantBadgeModal extends Component {
     // Check for serialized rating data
     if (customFields.rating_aspects) {
       try {
-        const parsed = typeof customFields.rating_aspects === "string"
-          ? JSON.parse(customFields.rating_aspects)
-          : customFields.rating_aspects;
+        const parsed =
+          typeof customFields.rating_aspects === "string"
+            ? JSON.parse(customFields.rating_aspects)
+            : customFields.rating_aspects;
 
         if (Array.isArray(parsed)) {
-          aspects = parsed.filter(v => typeof v === "number" && v > 0);
+          aspects = parsed.filter((v) => typeof v === "number" && v > 0);
         } else if (typeof parsed === "object") {
-          aspects = Object.values(parsed).filter(v => typeof v === "number" && v > 0);
+          aspects = Object.values(parsed).filter(
+            (v) => typeof v === "number" && v > 0
+          );
         }
       } catch {
         // Ignore parse errors
@@ -200,16 +244,26 @@ export default class MerchantBadgeModal extends Component {
     // Fallback: look for individual rating_* fields
     if (aspects.length === 0) {
       aspects = Object.entries(customFields)
-        .filter(([key, value]) => key.startsWith("rating_") && typeof value === "number" && value > 0)
+        .filter(
+          ([key, value]) =>
+            key.startsWith("rating_") &&
+            typeof value === "number" &&
+            value > 0
+        )
         .map(([, value]) => value);
     }
 
     if (aspects.length === 0) {
-      return null;
+      return { ratingValue: null, ratingCount: 0 };
     }
 
     const sum = aspects.reduce((acc, val) => acc + val, 0);
-    return sum / aspects.length;
+    const ratingValue = sum / aspects.length;
+
+    // Get rating count from topic (number of posts/ratings)
+    const ratingCount = topic.posts_count || aspects.length;
+
+    return { ratingValue, ratingCount };
   }
 
   formatExpiryDate(dateString) {
@@ -291,6 +345,17 @@ export default class MerchantBadgeModal extends Component {
                     {{/each}}
                   </div>
                   <span class="merchant-modal__rating-value">{{this.ratingValue}}/5</span>
+                  {{#if this.hasShopReviewTopic}}
+                    <a href={{this.shopReviewUrl}} class="merchant-modal__review-link" target="_blank" rel="noopener noreferrer">
+                      {{this.shopReviewLinkText}}
+                    </a>
+                  {{/if}}
+                </div>
+              {{else if this.hasShopReviewTopic}}
+                <div class="merchant-modal__rating">
+                  <a href={{this.shopReviewUrl}} class="merchant-modal__review-link" target="_blank" rel="noopener noreferrer">
+                    {{this.shopReviewLinkText}}
+                  </a>
                 </div>
               {{/if}}
             </div>

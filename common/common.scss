@@ -310,6 +310,7 @@ span.merchant-badges {
     align-items: center;
     gap: var(--space-2);
     font-size: var(--font-down-1);
+    flex-wrap: wrap;
   }
 
   &__rating-stars {
@@ -344,6 +345,18 @@ span.merchant-badges {
   &__rating-value {
     font-weight: 600;
     color: var(--primary-medium);
+  }
+
+  &__review-link {
+    color: var(--primary-medium);
+    text-decoration: none;
+    font-size: var(--font-down-1);
+    transition: color 0.2s ease;
+
+    &:hover {
+      color: var(--tertiary);
+      text-decoration: underline;
+    }
   }
 
   &__verified-badge {
