@@ -19,7 +19,7 @@ en:
           expires: "Expires"
 
   theme_metadata:
-    description: Adds dynamic merchant verification and coupon badges to links in posts and chat
+    description: Display merchant verification badges and coupons on links in posts, oneboxes, and chat with interactive modals
     settings:
       merchants: "Merchant configurations (domain, verified status, coupons)"
       apply_to_oneboxes: "Show badges on onebox link previews"

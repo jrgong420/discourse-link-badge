@@ -1,12 +1,11 @@
 {
-  "name": "Onebox Badge",
+  "name": "Discourse Link Badge",
   "component": true,
   "authors": "jrgong",
-  "about_url": "https://github.com/jrgong420/onebox-badge",
-  "license_url": "https://github.com/jrgong420/onebox-badge/blob/main/LICENSE",
-  "theme_version": "0.1.0",
+  "about_url": "https://github.com/jrgong420/discourse-link-badge",
+  "license_url": "https://github.com/jrgong420/discourse-link-badge/blob/main/LICENSE",
+  "theme_version": "1.0.0",
   "minimum_discourse_version": "3.2.0",
-  "maximum_discourse_version": null,
   "assets": {},
   "modifiers": {}
 }
