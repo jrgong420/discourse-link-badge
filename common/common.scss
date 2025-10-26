@@ -1,26 +1,143 @@
 // Merchant Badges Styles
 
-// Style links that contain merchant badges
-a[data-merchant-badges-added="true"] {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-1) var(--space-2);
-  border: 1px solid var(--primary-low);
-  border-radius: 9999px; // pill shape
-  background: var(--secondary);
-  color: var(--tertiary);
-  text-decoration: none;
-  box-shadow: 0 2px 6px rgb(0, 0, 0, 0.06);
-  transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+// ============================================================================
+// Style Selection: Conditional styling based on merchant_link_style setting
+// ============================================================================
 
-  &:hover {
-    background: var(--tertiary-very-low);
-    border-color: var(--tertiary-low);
-    box-shadow: 0 3px 10px rgb(0, 0, 0, 0.10);
-    text-decoration: none;
-    transform: translateY(-1px);
+@if $merchant-link-style == "underline" {
+  // UNDERLINE STYLE: Subtle underline with transparent background
+  a[data-merchant-badges-added="true"] {
+    display: inline;
+    padding: 0;
+    border: none;
+    background: transparent;
     color: var(--tertiary);
+    text-decoration: underline;
+    text-decoration-color: var(--primary-low);
+    text-underline-offset: 0.2em;
+    transition: color 0.15s ease, text-decoration-color 0.15s ease;
+
+    &:hover {
+      color: var(--tertiary-hover);
+      text-decoration-color: var(--tertiary-low);
+    }
+  }
+
+  // Verified badge: transparent background, success color icon
+  .merchant-badge--verified {
+    background: transparent !important;
+    color: var(--success);
+    width: auto !important;
+    height: auto !important;
+    min-width: auto !important;
+    padding: 0 !important;
+    margin-right: var(--space-1);
+    border: none;
+
+    svg {
+      width: 0.9em;
+      height: 0.9em;
+      vertical-align: baseline;
+    }
+  }
+
+} @else if $merchant-link-style == "label" {
+  // LABEL STYLE: Soft filled label with subtle border and small radius
+  a[data-merchant-badges-added="true"] {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-1) var(--space-2);
+    border: 1px solid var(--primary-low);
+    border-radius: var(--border-radius);
+    background: var(--primary-very-low);
+    color: var(--tertiary);
+    text-decoration: none;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+
+    &:hover {
+      background: var(--tertiary-very-low);
+      border-color: var(--tertiary-low);
+      text-decoration: none;
+      color: var(--tertiary);
+    }
+  }
+
+} @else if $merchant-link-style == "ghost" {
+  // GHOST STYLE: Outline-only with transparent background
+  a[data-merchant-badges-added="true"] {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-1) var(--space-2);
+    border: 1px solid var(--primary-low);
+    border-radius: var(--border-radius);
+    background: transparent;
+    color: var(--tertiary);
+    text-decoration: none;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+
+    &:hover {
+      background: var(--primary-very-low);
+      border-color: var(--tertiary-low);
+      text-decoration: none;
+      color: var(--tertiary);
+    }
+  }
+
+} @else {
+  // PILL STYLE (default): Rounded badge with shadow
+  a[data-merchant-badges-added="true"] {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-1) var(--space-2);
+    border: 1px solid var(--primary-low);
+    border-radius: 9999px; // pill shape
+    background: var(--secondary);
+    color: var(--tertiary);
+    text-decoration: none;
+    box-shadow: 0 2px 6px rgb(0, 0, 0, 0.06);
+    transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+
+    &:hover {
+      background: var(--tertiary-very-low);
+      border-color: var(--tertiary-low);
+      box-shadow: 0 3px 10px rgb(0, 0, 0, 0.10);
+      text-decoration: none;
+      transform: translateY(-1px);
+      color: var(--tertiary);
+    }
+  }
+
+  // Mobile: ensure trailing badges sit inline at the end of the last wrapped line
+  @media (width <= 600px) {
+    a[data-merchant-badges-added="true"] {
+      // Use inline formatting so icons flow with text and appear after the last word
+      display: inline;
+      white-space: normal;
+      overflow-wrap: anywhere; // allow long URLs to wrap nicely
+      vertical-align: baseline;
+    }
+
+    // Keep trailing badges as a single inline cluster and space correctly
+    a[data-merchant-badges-added="true"] .merchant-badges {
+      display: inline-flex;
+      white-space: nowrap;
+      margin-left: var(--space-1);
+      vertical-align: baseline;
+    }
+
+    // Provide spacing for a leading verified icon when flex gap is not available
+    a[data-merchant-badges-added="true"] .merchant-badge--verified {
+      margin-right: var(--space-1);
+    }
+
+    // Onebox headers sometimes re-assert flex on links; override on mobile too
+    aside.onebox header a[data-merchant-badges-added="true"],
+    aside.onebox .source a[data-merchant-badges-added="true"] {
+      display: inline;
+    }
   }
 }
 
@@ -30,6 +147,10 @@ a[data-merchant-badges-added="true"] {
     display: none;
   }
 }
+
+// ============================================================================
+// Badge Container and Badge Elements (shared across all styles)
+// ============================================================================
 
 span.merchant-badges {
   font-weight: normal;
@@ -78,6 +199,7 @@ span.merchant-badges {
   }
 
   // Verified merchant badge: smaller circular icon using core vars
+  // Note: underline style overrides this with transparent background
   &--verified {
     padding: 0; // circular chip
     font-size: var(--font-down-1); // smaller than text
@@ -132,7 +254,10 @@ span.merchant-badges {
   &__label { margin-left: var(--space-1); }
 }
 
+// ============================================================================
 // Merchant Modal Styles
+// ============================================================================
+
 .merchant-modal {
   padding: var(--space-3);
 

@@ -30,6 +30,7 @@ en:
       verified_badge_icon: "Icon name for the 'Verified merchant' badge (e.g., far-check-circle, shield-alt, certificate)"
       coupons_badge_icon: "Icon name for the coupon badge (e.g., tags, ticket-alt, percent, gift)"
       show_badge_labels: "Show text labels next to icons (disable for icon-only badges)"
+      merchant_link_style: "Visual style for merchant links (pill: rounded badge with shadow; underline: subtle underline with icon; label: soft filled label; ghost: outline-only with transparent background)"
       hide_click_counter: "Hide Discourse's default click counter on merchant badge links"
       debug_logging_badges: "Enable verbose console logging for badge rendering and click events (for debugging)"
       debug_logging_modal: "Enable verbose console logging for modal opening, rendering, and data (for debugging)"
