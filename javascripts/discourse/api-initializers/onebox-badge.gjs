@@ -1,6 +1,7 @@
 import { apiInitializer } from "discourse/lib/api";
-import { iconHTML } from "discourse-common/lib/icon-library";
+import { iconHTML } from "discourse/lib/icon-library";
 import { i18n } from "discourse-i18n";
+import MerchantBadgeModal from "../components/merchant-badge-modal";
 
 const BADGE_MARKER = "data-merchant-badges-added";
 
@@ -40,7 +41,7 @@ function findMerchant(url, merchants) {
   });
 }
 
-function buildMerchantBadges(merchant, showVerified, showCoupons) {
+function buildMerchantBadges(merchant, showVerified, showCoupons, modal, sourceUrl, debugModal) {
   const verifiedOn = !!showVerified && !!merchant?.verified;
   const couponsCount = Array.isArray(merchant?.coupons) ? merchant.coupons.length : 0;
   const couponsOn = !!showCoupons && couponsCount > 0;
@@ -49,21 +50,41 @@ function buildMerchantBadges(merchant, showVerified, showCoupons) {
     return null;
   }
 
-  const container = document.createElement("span");
-  container.className = "merchant-badges";
+  const result = { leading: null, trailing: null };
 
   const clickHandler = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    // TODO: Phase 2 - open modal with merchant data
-    // eslint-disable-next-line no-console
-    console.log("[Merchant Badges] Clicked badge", {
-      verifiedOn,
-      couponsCount,
-      merchantDomain: merchant?.domain,
+
+    if (debugModal) {
+      // eslint-disable-next-line no-console
+      console.log("[Merchant Modal] Click handler triggered", {
+        merchant,
+        sourceUrl,
+        event: e,
+      });
+    }
+
+    // Open modal with merchant data
+    if (debugModal) {
+      // eslint-disable-next-line no-console
+      console.log("[Merchant Modal] Calling modal.show()", {
+        component: "MerchantBadgeModal",
+        model: { merchant, sourceUrl },
+      });
+    }
+
+    modal.show(MerchantBadgeModal, {
+      model: { merchant, sourceUrl },
     });
+
+    if (debugModal) {
+      // eslint-disable-next-line no-console
+      console.log("[Merchant Modal] modal.show() called successfully");
+    }
   };
 
+  // Leading: Verified badge (circular), placed before link text
   if (verifiedOn) {
     const btn = document.createElement("button");
     btn.type = "button";
@@ -71,7 +92,7 @@ function buildMerchantBadges(merchant, showVerified, showCoupons) {
     const label = i18n(themePrefix("js.merchant.verified_badge"));
     btn.setAttribute("aria-label", label);
 
-    // Inject icon
+    // Icon only inside a circle
     const iconName = settings.verified_badge_icon || "far-check-circle";
     btn.innerHTML = iconHTML(iconName);
     const svg = btn.querySelector("svg");
@@ -79,53 +100,65 @@ function buildMerchantBadges(merchant, showVerified, showCoupons) {
       svg.setAttribute("aria-hidden", "true");
     }
 
-    // Conditionally add text label
     if (settings.show_badge_labels) {
       const span = document.createElement("span");
       span.className = "merchant-badge__label";
       span.textContent = label;
       btn.appendChild(span);
-    } else {
-      btn.classList.add("merchant-badge--icon-only");
     }
 
     btn.addEventListener("click", clickHandler);
-    container.appendChild(btn);
+    result.leading = btn;
   }
 
+  // Trailing: Coupons chip with icon + numeric counter
   if (couponsOn) {
+    const container = document.createElement("span");
+    container.className = "merchant-badges"; // trailing container
+
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "merchant-badge merchant-badge--coupons";
     const label = i18n(themePrefix("js.merchant.coupons_badge"), { count: couponsCount });
     btn.setAttribute("aria-label", label);
 
-    // Inject icon
+    // Icon span
     const iconName = settings.coupons_badge_icon || "tags";
-    btn.innerHTML = iconHTML(iconName);
-    const svg = btn.querySelector("svg");
+    const iconSpan = document.createElement("span");
+    iconSpan.className = "merchant-badge__icon";
+    iconSpan.innerHTML = iconHTML(iconName);
+    const svg = iconSpan.querySelector("svg");
     if (svg) {
       svg.setAttribute("aria-hidden", "true");
     }
+    btn.appendChild(iconSpan);
 
-    // Conditionally add text label
+    // Numeric counter
+    const countSpan = document.createElement("span");
+    countSpan.className = "merchant-badge__count";
+    countSpan.textContent = String(couponsCount);
+    btn.appendChild(countSpan);
+
+    // Optional visible label (after count) if enabled
     if (settings.show_badge_labels) {
       const span = document.createElement("span");
       span.className = "merchant-badge__label";
       span.textContent = label;
       btn.appendChild(span);
-    } else {
-      btn.classList.add("merchant-badge--icon-only");
     }
 
     btn.addEventListener("click", clickHandler);
     container.appendChild(btn);
+    result.trailing = container;
   }
 
-  return container;
+  return result;
 }
 
 export default apiInitializer((api) => {
+  // Get modal service once for all decorations
+  const modal = api.container.lookup("service:modal");
+
   api.decorateCookedElement(
     (element, helper) => {
       const post = helper?.getModel?.();
@@ -133,32 +166,45 @@ export default apiInitializer((api) => {
         return;
       }
 
-      // eslint-disable-next-line no-console
-      console.log("[Merchant Badges] Decorator running", {
-        merchants: settings.merchants,
-        merchantCount: settings.merchants?.length,
-        applyToOneboxes: settings.apply_to_oneboxes,
-        applyToTextLinks: settings.apply_to_text_links,
-      });
+      const debugBadges = settings.debug_logging_badges;
+      const debugModal = settings.debug_logging_modal;
+
+      if (debugBadges) {
+        // eslint-disable-next-line no-console
+        console.log("[Merchant Badges] Decorator running", {
+          merchants: settings.merchants,
+          merchantCount: settings.merchants?.length,
+          applyToOneboxes: settings.apply_to_oneboxes,
+          applyToTextLinks: settings.apply_to_text_links,
+        });
+      }
 
       const merchants = settings.merchants || [];
       if (merchants.length === 0) {
-        // eslint-disable-next-line no-console
-        console.log("[Merchant Badges] No merchants configured");
+        if (debugBadges) {
+          // eslint-disable-next-line no-console
+          console.log("[Merchant Badges] No merchants configured");
+        }
         return;
       }
 
       const showVerified = settings.show_verified_badge;
       const showCoupons = settings.show_coupons_badge;
-      // eslint-disable-next-line no-console
-      console.log("[Merchant Badges] Flags:", { showVerified, showCoupons });
+
+      if (debugBadges) {
+        // eslint-disable-next-line no-console
+        console.log("[Merchant Badges] Flags:", { showVerified, showCoupons });
+      }
 
 
       // Process onebox links
       if (settings.apply_to_oneboxes) {
         const oneboxes = element.querySelectorAll("aside.onebox");
-        // eslint-disable-next-line no-console
-        console.log("[Merchant Badges] Found oneboxes:", oneboxes.length);
+
+        if (debugBadges) {
+          // eslint-disable-next-line no-console
+          console.log("[Merchant Badges] Found oneboxes:", oneboxes.length);
+        }
 
         oneboxes.forEach((onebox) => {
           // Find the main link in onebox header/source
@@ -167,24 +213,36 @@ export default apiInitializer((api) => {
             onebox.querySelector("header a[href]") ||
             onebox.querySelector("a.onebox[href]");
 
-          // eslint-disable-next-line no-console
-          console.log("[Merchant Badges] Onebox link:", link?.href);
+          if (debugBadges) {
+            // eslint-disable-next-line no-console
+            console.log("[Merchant Badges] Onebox link:", link?.href);
+          }
 
           if (link && !link.hasAttribute(BADGE_MARKER)) {
             const merchant = findMerchant(link.href, merchants);
-            // eslint-disable-next-line no-console
-            console.log("[Merchant Badges] Merchant match:", merchant);
+
+            if (debugBadges) {
+              // eslint-disable-next-line no-console
+              console.log("[Merchant Badges] Merchant match:", merchant);
+            }
 
             if (merchant) {
               link.setAttribute(BADGE_MARKER, "true");
 
-              // Build badges DOM
-              const badges = buildMerchantBadges(merchant, showVerified, showCoupons);
+              // Build badges DOM (leading verified + trailing coupons)
+              const badges = buildMerchantBadges(merchant, showVerified, showCoupons, modal, link.href, debugModal);
               if (badges) {
-                // Insert badges inside the link at the end
-                link.appendChild(badges);
-                // eslint-disable-next-line no-console
-                console.log("[Merchant Badges] Rendered badges for:", link.href);
+                if (badges.leading) {
+                  link.insertBefore(badges.leading, link.firstChild);
+                }
+                if (badges.trailing) {
+                  link.appendChild(badges.trailing);
+                }
+
+                if (debugBadges) {
+                  // eslint-disable-next-line no-console
+                  console.log("[Merchant Badges] Rendered badges for:", link.href);
+                }
               }
             }
           }
@@ -197,8 +255,10 @@ export default apiInitializer((api) => {
           "a[href^='http']:not(.mention):not(.hashtag):not(.badge-category)"
         );
 
-        // eslint-disable-next-line no-console
-        console.log("[Merchant Badges] Found text links:", links.length);
+        if (debugBadges) {
+          // eslint-disable-next-line no-console
+          console.log("[Merchant Badges] Found text links:", links.length);
+        }
 
         links.forEach((link) => {
           // Skip if already processed or inside onebox
@@ -209,23 +269,35 @@ export default apiInitializer((api) => {
             return;
           }
 
-          // eslint-disable-next-line no-console
-          console.log("[Merchant Badges] Text link:", link.href);
+          if (debugBadges) {
+            // eslint-disable-next-line no-console
+            console.log("[Merchant Badges] Text link:", link.href);
+          }
 
           const merchant = findMerchant(link.href, merchants);
-          // eslint-disable-next-line no-console
-          console.log("[Merchant Badges] Merchant match:", merchant);
+
+          if (debugBadges) {
+            // eslint-disable-next-line no-console
+            console.log("[Merchant Badges] Merchant match:", merchant);
+          }
 
           if (merchant) {
             link.setAttribute(BADGE_MARKER, "true");
 
-            // Build badges DOM
-            const badges = buildMerchantBadges(merchant, showVerified, showCoupons);
+            // Build badges DOM (leading verified + trailing coupons)
+            const badges = buildMerchantBadges(merchant, showVerified, showCoupons, modal, link.href, debugModal);
             if (badges) {
-              // Insert badges inside the link at the end
-              link.appendChild(badges);
-              // eslint-disable-next-line no-console
-              console.log("[Merchant Badges] Rendered badges for:", link.href);
+              if (badges.leading) {
+                link.insertBefore(badges.leading, link.firstChild);
+              }
+              if (badges.trailing) {
+                link.appendChild(badges.trailing);
+              }
+
+              if (debugBadges) {
+                // eslint-disable-next-line no-console
+                console.log("[Merchant Badges] Rendered badges for:", link.href);
+              }
             }
           }
         });

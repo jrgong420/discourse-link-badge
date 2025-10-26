@@ -2,11 +2,26 @@
 
 // Style links that contain merchant badges
 a[data-merchant-badges-added="true"] {
-  border: 1px solid var(--tertiary);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--primary-low);
+  border-radius: 9999px; // pill shape
+  background: var(--secondary);
   color: var(--tertiary);
-  padding: 0 0.42em;
-  border-radius: 10px;
-  display: inline-block;
+  text-decoration: none;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+  transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+
+  &:hover {
+    background: var(--tertiary-very-low);
+    border-color: var(--tertiary-low);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.10);
+    text-decoration: none;
+    transform: translateY(-1px);
+    color: var(--tertiary);
+  }
 }
 
 // Hide Discourse's default click counter on merchant badge links when setting is enabled
@@ -33,13 +48,14 @@ span.merchant-badges {
 .merchant-badge {
   display: inline-flex;
   align-items: center;
+  gap: var(--space-1);
   padding: 0.25em 0.5em;
   font-size: var(--font-down-1);
   line-height: 1;
   border: 1px solid transparent;
   color: var(--primary);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: transform 0.2s ease;
   white-space: nowrap;
 
   svg {
@@ -48,31 +64,53 @@ span.merchant-badges {
     vertical-align: -0.125em;
   }
 
-  &:hover {
-    transform: translateY(-1px);
-  }
+  &:hover { transform: translateY(-1px); }
+  &:focus { outline: 2px solid var(--tertiary); outline-offset: 2px; }
+  &:active { transform: translateY(0); }
 
-  &:focus {
-    outline: 2px solid var(--tertiary);
-    outline-offset: 2px;
-  }
-
-  &:active {
-    transform: translateY(0);
-  }
-
-  // Verified merchant badge
+  // Verified merchant badge: smaller circular icon using core vars
   &--verified {
+    padding: 0; // circular chip
+    font-size: var(--font-down-1); // smaller than text
+    width: calc(var(--font-down-1) + var(--space-1));
+    height: calc(var(--font-down-1) + var(--space-1));
+    min-width: calc(var(--font-down-1) + var(--space-1));
+    border-radius: 9999px;
     background-color: var(--success);
-    color: var(--success-low);
-    border-radius: 3px;
+    color: var(--secondary);
+    justify-content: center;
+    align-items: center;
   }
 
-  // Coupons badge
+  // Coupons badge: icon + numeric counter inside small chips
   &--coupons {
-    color: var(--primary-50);
-    background-color: var(--quaternary);
-    border-radius: 3px;
+    background: var(--primary-very-low);
+    border: 1px solid var(--primary-low);
+    color: var(--primary);
+    border-radius: 9999px;
+    padding: var(--space-1) var(--space-2);
+  }
+
+  &__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1em;
+    height: 1em;
+    color: var(--primary);
+  }
+
+  &__count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 1.25em;
+    margin-left: var(--space-1);
+    border-radius: 9999px;
+    background: transparent; // unified pill on container
+    color: var(--primary);
+    font-weight: 600;
+    line-height: 1;
   }
 
   // Icon-only mode
@@ -82,9 +120,7 @@ span.merchant-badges {
   }
 
   // Label spacing
-  &__label {
-    margin-left: var(--space-1);
-  }
+  &__label { margin-left: var(--space-1); }
 }
 
 // Merchant Modal Styles
