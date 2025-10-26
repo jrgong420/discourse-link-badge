@@ -5,6 +5,43 @@ import MerchantBadgeModal from "../components/merchant-badge-modal";
 
 const BADGE_MARKER = "data-merchant-badges-added";
 
+// Known affiliate redirect patterns: tracking host -> parameter names containing target URL
+const TRACKING_PATTERNS = new Map([
+  ["awin1.com", ["ued"]],
+  ["t.adcell.com", ["param0"]],
+]);
+
+// Cache for merchant lookups (cleared on page navigation)
+const merchantCache = new Map();
+
+// Maximum recursion depth for nested redirect URLs
+const MAX_REDIRECT_DEPTH = 2;
+
+/**
+ * Safely parse a URL string
+ * @param {string} urlString - URL to parse
+ * @returns {URL|null} - Parsed URL or null if invalid
+ */
+function safeParse(urlString) {
+  if (!urlString || typeof urlString !== "string") {
+    return null;
+  }
+
+  try {
+    // Handle URLs without scheme (e.g., "www.example.com")
+    if (!urlString.includes("://")) {
+      if (urlString.startsWith("www.") || urlString.includes(".")) {
+        urlString = `https://${urlString}`;
+      } else {
+        return null;
+      }
+    }
+    return new URL(urlString);
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Normalize a URL hostname to match against merchant domains
  * @param {string} url - Full URL or hostname
@@ -23,12 +60,132 @@ function normalizeDomain(url) {
 }
 
 /**
- * Find merchant config by domain
- * @param {string} url - Link URL
- * @param {Array} merchants - Merchant configs from settings
+ * Try to parse a candidate string as a URL, handling URL encoding
+ * @param {string} candidate - Potential URL string (may be encoded)
+ * @returns {string|null} - Decoded URL string or null
+ */
+function tryParseCandidateUrl(candidate) {
+  if (!candidate || typeof candidate !== "string") {
+    return null;
+  }
+
+  // Try as-is first
+  if (candidate.includes("://")) {
+    return candidate;
+  }
+
+  // Try decoding once (handles single encoding)
+  try {
+    const decoded = decodeURIComponent(candidate);
+    if (decoded !== candidate && decoded.includes("://")) {
+      return decoded;
+    }
+  } catch {
+    // Invalid encoding, continue
+  }
+
+  // Check if it looks like a domain without scheme
+  if (candidate.startsWith("www.") || /^[a-z0-9-]+\.[a-z]{2,}/i.test(candidate)) {
+    return `https://${candidate}`;
+  }
+
+  return null;
+}
+
+/**
+ * Extract nested target URL from known tracking redirect parameters
+ * @param {URL} parsedUrl - Parsed redirect URL
+ * @returns {string|null} - Extracted target URL or null
+ */
+function extractFromKnownParams(parsedUrl) {
+  const host = normalizeDomain(parsedUrl.hostname);
+  const paramNames = TRACKING_PATTERNS.get(host);
+
+  if (!paramNames || paramNames.length === 0) {
+    return null;
+  }
+
+  const params = new URLSearchParams(parsedUrl.search || "");
+
+  for (const paramName of paramNames) {
+    const values = params.getAll(paramName);
+    for (const value of values) {
+      const candidateUrl = tryParseCandidateUrl(value);
+      if (candidateUrl) {
+        return candidateUrl;
+      }
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Fallback: scan all query parameters for URL-like values
+ * @param {URL} parsedUrl - Parsed URL
+ * @returns {string|null} - First URL-like parameter value or null
+ */
+function extractFromAnyParam(parsedUrl) {
+  const params = new URLSearchParams(parsedUrl.search || "");
+
+  for (const [, value] of params) {
+    const candidateUrl = tryParseCandidateUrl(value);
+    if (candidateUrl) {
+      return candidateUrl;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Extract candidate merchant URL from redirect URL or nested parameters
+ * @param {string} url - Original URL (may be a redirect)
+ * @param {number} depth - Current recursion depth
+ * @returns {string|null} - Extracted target URL or null
+ */
+function extractCandidateUrl(url, depth = 0) {
+  if (depth >= MAX_REDIRECT_DEPTH) {
+    return null;
+  }
+
+  const parsed = safeParse(url);
+  if (!parsed) {
+    return null;
+  }
+
+  // Try known tracking patterns first
+  let candidate = extractFromKnownParams(parsed);
+
+  // Fallback to scanning all params if no known pattern matched
+  if (!candidate) {
+    candidate = extractFromAnyParam(parsed);
+  }
+
+  // If we found a nested URL, check if it's also a redirect (recurse)
+  if (candidate) {
+    const nestedParsed = safeParse(candidate);
+    if (nestedParsed) {
+      const nestedHost = normalizeDomain(nestedParsed.hostname);
+      // If the nested URL is also a known tracking host, recurse
+      if (TRACKING_PATTERNS.has(nestedHost)) {
+        const deeperCandidate = extractCandidateUrl(candidate, depth + 1);
+        return deeperCandidate || candidate;
+      }
+    }
+    return candidate;
+  }
+
+  return null;
+}
+
+/**
+ * Match a URL against merchant domains by hostname
+ * @param {string} url - URL to match
+ * @param {Array} merchants - Merchant configs
  * @returns {Object|null} - Matched merchant or null
  */
-function findMerchant(url, merchants) {
+function matchByHost(url, merchants) {
   if (!url || !merchants || merchants.length === 0) {
     return null;
   }
@@ -39,6 +196,62 @@ function findMerchant(url, merchants) {
     const merchantDomain = normalizeDomain(merchant.domain);
     return domain === merchantDomain || domain.endsWith(`.${merchantDomain}`);
   });
+}
+
+/**
+ * Find merchant config by domain (with nested redirect URL support)
+ * @param {string} url - Link URL (may be a redirect)
+ * @param {Array} merchants - Merchant configs from settings
+ * @param {boolean} debug - Enable debug logging
+ * @returns {Object|null} - Matched merchant or null
+ */
+function findMerchant(url, merchants, debug = false) {
+  if (!url || !merchants || merchants.length === 0) {
+    return null;
+  }
+
+  // Check cache first
+  const cached = merchantCache.get(url);
+  if (cached !== undefined) {
+    if (debug) {
+      // eslint-disable-next-line no-console
+      console.log("[Merchant Matching] Cache hit:", { url, merchant: cached });
+    }
+    return cached;
+  }
+
+  // Try direct hostname match first (fast path)
+  let merchant = matchByHost(url, merchants);
+
+  if (merchant) {
+    if (debug) {
+      // eslint-disable-next-line no-console
+      console.log("[Merchant Matching] Direct match:", { url, merchant });
+    }
+    merchantCache.set(url, merchant);
+    return merchant;
+  }
+
+  // Try extracting nested URL from redirect parameters
+  const candidateUrl = extractCandidateUrl(url);
+
+  if (candidateUrl) {
+    if (debug) {
+      // eslint-disable-next-line no-console
+      console.log("[Merchant Matching] Extracted nested URL:", { original: url, extracted: candidateUrl });
+    }
+
+    merchant = matchByHost(candidateUrl, merchants);
+
+    if (merchant && debug) {
+      // eslint-disable-next-line no-console
+      console.log("[Merchant Matching] Nested match:", { candidateUrl, merchant });
+    }
+  }
+
+  // Cache result (even if null)
+  merchantCache.set(url, merchant || null);
+  return merchant || null;
 }
 
 function buildMerchantBadges(merchant, showVerified, showCoupons, modal, sourceUrl, debugModal) {
@@ -156,6 +369,11 @@ function buildMerchantBadges(merchant, showVerified, showCoupons, modal, sourceU
 }
 
 export default apiInitializer((api) => {
+  // Clear merchant cache on page navigation (SPA pattern)
+  api.onPageChange(() => {
+    merchantCache.clear();
+  });
+
   // Get modal service once for all decorations
   const modal = api.container.lookup("service:modal");
 
@@ -219,7 +437,7 @@ export default apiInitializer((api) => {
           }
 
           if (link && !link.hasAttribute(BADGE_MARKER)) {
-            const merchant = findMerchant(link.href, merchants);
+            const merchant = findMerchant(link.href, merchants, debugBadges);
 
             if (debugBadges) {
               // eslint-disable-next-line no-console
@@ -274,7 +492,7 @@ export default apiInitializer((api) => {
             console.log("[Merchant Badges] Text link:", link.href);
           }
 
-          const merchant = findMerchant(link.href, merchants);
+          const merchant = findMerchant(link.href, merchants, debugBadges);
 
           if (debugBadges) {
             // eslint-disable-next-line no-console
