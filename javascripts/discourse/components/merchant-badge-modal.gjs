@@ -1,16 +1,22 @@
 import Component from "@glimmer/component";
 import { tracked } from "@glimmer/tracking";
 import { action } from "@ember/object";
-import { eq } from "truth-helpers";
-import { i18n } from "discourse-i18n";
-import dIcon from "discourse/helpers/d-icon";
 import DButton from "discourse/components/d-button";
 import DModal from "discourse/components/d-modal";
+import dIcon from "discourse/helpers/d-icon";
+import { i18n } from "discourse-i18n";
 
 export default class MerchantBadgeModal extends Component {
   @tracked copiedCode = null;
 
-  get merchant() {
+  getCouponButtonLabel = (couponCode) => {
+    if (this.copiedCode === couponCode) {
+      return i18n(themePrefix("js.merchant.modal.copied"));
+    }
+    return i18n(themePrefix("js.merchant.modal.copy_code"));
+  };
+
+get merchant() {
     return this.args.model.merchant;
   }
 
@@ -36,12 +42,7 @@ export default class MerchantBadgeModal extends Component {
     });
   }
 
-  getCouponButtonLabel = (couponCode) => {
-    if (this.copiedCode === couponCode) {
-      return i18n(themePrefix("js.merchant.modal.copied"));
-    }
-    return i18n(themePrefix("js.merchant.modal.copy_code"));
-  };
+  
 
   @action
   async copyCouponCode(code) {

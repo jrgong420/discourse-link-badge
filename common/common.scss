@@ -11,13 +11,13 @@ a[data-merchant-badges-added="true"] {
   background: var(--secondary);
   color: var(--tertiary);
   text-decoration: none;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2px 6px rgb(0, 0, 0, 0.06);
   transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
 
   &:hover {
     background: var(--tertiary-very-low);
     border-color: var(--tertiary-low);
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.10);
+    box-shadow: 0 3px 10px rgb(0, 0, 0, 0.10);
     text-decoration: none;
     transform: translateY(-1px);
     color: var(--tertiary);
@@ -64,9 +64,18 @@ span.merchant-badges {
     vertical-align: -0.125em;
   }
 
-  &:hover { transform: translateY(-1px); }
-  &:focus { outline: 2px solid var(--tertiary); outline-offset: 2px; }
-  &:active { transform: translateY(0); }
+  &:hover {
+    transform: translateY(-1px);
+  }
+
+  &:focus {
+    outline: 2px solid var(--tertiary);
+    outline-offset: 2px;
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
 
   // Verified merchant badge: smaller circular icon using core vars
   &--verified {
@@ -279,6 +288,26 @@ span.merchant-badges {
     svg {
       width: 1em;
       height: 1em;
+    }
+  }
+}
+
+// Onebox-specific overrides: fix Discourse header icon margins
+// Core Discourse applies `margin-right: 5px; margin-top: 2px;` to all .d-icon in onebox headers,
+// which breaks our merchant badge icon positioning. Override for our decorated links only.
+aside.onebox {
+  header, .source {
+    a[data-merchant-badges-added="true"] {
+      // Re-assert flexbox layout in case onebox header styles override
+      display: inline-flex;
+      align-items: center;
+
+      // Reset Discourse's default icon margins for our merchant badge icons
+      .merchant-badge .d-icon {
+        margin-right: 0;
+        margin-top: 0;
+        vertical-align: middle;
+      }
     }
   }
 }
