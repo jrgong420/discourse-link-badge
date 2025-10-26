@@ -18,27 +18,14 @@
     transition: color 0.15s ease, text-decoration-color 0.15s ease;
 
     &:hover {
-      color: var(--tertiary-hover);
+      color: var(--tertiary);
       text-decoration-color: var(--tertiary-low);
     }
   }
 
-  // Verified badge: transparent background, success color icon
+  // Verified badge: keep circular green chip; inherit base sizing/background
   .merchant-badge--verified {
-    background: transparent !important;
-    color: var(--success);
-    width: auto !important;
-    height: auto !important;
-    min-width: auto !important;
-    padding: 0 !important;
     margin-right: var(--space-1);
-    border: none;
-
-    svg {
-      width: 0.9em;
-      height: 0.9em;
-      vertical-align: baseline;
-    }
   }
 
 } @else if $merchant-link-style == "label" {
