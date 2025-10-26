@@ -263,8 +263,6 @@ function buildMerchantBadges(merchant, showVerified, showCoupons, modal, sourceU
     return null;
   }
 
-  const result = { leading: null, trailing: null };
-
   const clickHandler = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -297,48 +295,44 @@ function buildMerchantBadges(merchant, showVerified, showCoupons, modal, sourceU
     }
   };
 
-  // Leading: Verified badge (circular), placed before link text
+  // Build combined aria-label from both states
+  const ariaLabels = [];
   if (verifiedOn) {
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "merchant-badge merchant-badge--verified";
-    const label = i18n(themePrefix("js.merchant.verified_badge"));
-    btn.setAttribute("aria-label", label);
+    ariaLabels.push(i18n(themePrefix("js.merchant.verified_badge")));
+  }
+  if (couponsOn) {
+    ariaLabels.push(i18n(themePrefix("js.merchant.coupons_badge"), { count: couponsCount }));
+  }
+  const combinedAriaLabel = ariaLabels.join("; ");
 
-    // Icon only inside a circle
+  // Create unified trailing container with single combined pill button
+  const container = document.createElement("span");
+  container.className = "merchant-badges";
+
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "merchant-badge merchant-badge--group";
+  btn.setAttribute("aria-label", combinedAriaLabel);
+  btn.title = combinedAriaLabel; // Tooltip on hover
+
+  // Verified icon (if enabled)
+  if (verifiedOn) {
     const iconName = settings.verified_badge_icon || "far-check-circle";
-    btn.innerHTML = iconHTML(iconName);
-    const svg = btn.querySelector("svg");
+    const iconSpan = document.createElement("span");
+    iconSpan.className = "merchant-badge__icon merchant-badge__icon--verified";
+    iconSpan.innerHTML = iconHTML(iconName);
+    const svg = iconSpan.querySelector("svg");
     if (svg) {
       svg.setAttribute("aria-hidden", "true");
     }
-
-    if (settings.show_badge_labels) {
-      const span = document.createElement("span");
-      span.className = "merchant-badge__label";
-      span.textContent = label;
-      btn.appendChild(span);
-    }
-
-    btn.addEventListener("click", clickHandler);
-    result.leading = btn;
+    btn.appendChild(iconSpan);
   }
 
-  // Trailing: Coupons chip with icon + numeric counter
+  // Coupons icon + count (if enabled)
   if (couponsOn) {
-    const container = document.createElement("span");
-    container.className = "merchant-badges"; // trailing container
-
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "merchant-badge merchant-badge--coupons";
-    const label = i18n(themePrefix("js.merchant.coupons_badge"), { count: couponsCount });
-    btn.setAttribute("aria-label", label);
-
-    // Icon span
     const iconName = settings.coupons_badge_icon || "tags";
     const iconSpan = document.createElement("span");
-    iconSpan.className = "merchant-badge__icon";
+    iconSpan.className = "merchant-badge__icon merchant-badge__icon--coupons";
     iconSpan.innerHTML = iconHTML(iconName);
     const svg = iconSpan.querySelector("svg");
     if (svg) {
@@ -354,18 +348,17 @@ function buildMerchantBadges(merchant, showVerified, showCoupons, modal, sourceU
 
     // Optional visible label (after count) if enabled
     if (settings.show_badge_labels) {
-      const span = document.createElement("span");
-      span.className = "merchant-badge__label";
-      span.textContent = label;
-      btn.appendChild(span);
+      const labelSpan = document.createElement("span");
+      labelSpan.className = "merchant-badge__label";
+      labelSpan.textContent = i18n(themePrefix("js.merchant.coupons_badge"), { count: couponsCount });
+      btn.appendChild(labelSpan);
     }
-
-    btn.addEventListener("click", clickHandler);
-    container.appendChild(btn);
-    result.trailing = container;
   }
 
-  return result;
+  btn.addEventListener("click", clickHandler);
+  container.appendChild(btn);
+
+  return { leading: null, trailing: container };
 }
 
 export default apiInitializer((api) => {
@@ -447,15 +440,10 @@ export default apiInitializer((api) => {
             if (merchant) {
               link.setAttribute(BADGE_MARKER, "true");
 
-              // Build badges DOM (leading verified + trailing coupons)
+              // Build badges DOM (unified trailing container)
               const badges = buildMerchantBadges(merchant, showVerified, showCoupons, modal, link.href, debugModal);
-              if (badges) {
-                if (badges.leading) {
-                  link.insertBefore(badges.leading, link.firstChild);
-                }
-                if (badges.trailing) {
-                  link.appendChild(badges.trailing);
-                }
+              if (badges?.trailing) {
+                link.appendChild(badges.trailing);
 
                 if (debugBadges) {
                   // eslint-disable-next-line no-console
@@ -502,15 +490,10 @@ export default apiInitializer((api) => {
           if (merchant) {
             link.setAttribute(BADGE_MARKER, "true");
 
-            // Build badges DOM (leading verified + trailing coupons)
+            // Build badges DOM (unified trailing container)
             const badges = buildMerchantBadges(merchant, showVerified, showCoupons, modal, link.href, debugModal);
-            if (badges) {
-              if (badges.leading) {
-                link.insertBefore(badges.leading, link.firstChild);
-              }
-              if (badges.trailing) {
-                link.appendChild(badges.trailing);
-              }
+            if (badges?.trailing) {
+              link.appendChild(badges.trailing);
 
               if (debugBadges) {
                 // eslint-disable-next-line no-console

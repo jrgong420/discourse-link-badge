@@ -23,11 +23,6 @@
     }
   }
 
-  // Verified badge: keep circular green chip; inherit base sizing/background
-  .merchant-badge--verified {
-    margin-right: var(--space-1);
-  }
-
 } @else if $merchant-link-style == "label" {
   // LABEL STYLE: Soft filled label with subtle border and small radius
   a[data-merchant-badges-added="true"] {
@@ -115,11 +110,6 @@
       vertical-align: baseline;
     }
 
-    // Provide spacing for a leading verified icon when flex gap is not available
-    a[data-merchant-badges-added="true"] .merchant-badge--verified {
-      margin-right: var(--space-1);
-    }
-
     // Onebox headers sometimes re-assert flex on links; override on mobile too
     aside.onebox header a[data-merchant-badges-added="true"],
     aside.onebox .source a[data-merchant-badges-added="true"] {
@@ -185,22 +175,25 @@ span.merchant-badges {
     transform: translateY(0);
   }
 
-  // Verified merchant badge: smaller circular icon using core vars
-  // Note: underline style overrides this with transparent background
-  &--verified {
-    padding: 0; // circular chip
-    font-size: var(--font-down-1); // smaller than text
-    width: calc(var(--font-down-1) + var(--space-1));
-    height: calc(var(--font-down-1) + var(--space-1));
-    min-width: calc(var(--font-down-1) + var(--space-1));
+  // Combined badge group: compact pill containing verified and/or coupons info
+  &--group {
+    background: var(--primary-very-low);
+    border: 1px solid var(--primary-low);
     border-radius: 9999px;
-    background-color: var(--success);
-    color: var(--secondary);
-    justify-content: center;
-    align-items: center;
+    padding: 0.2em 0.5em; // More compact than separate badges
+    gap: 0.35em; // Tighter spacing between icons and count
   }
 
-  // Coupons badge: icon + numeric counter inside small chips
+  // Deprecated: Verified merchant badge (now part of --group)
+  &--verified {
+    background: transparent;
+    border: 1px solid var(--primary-low);
+    border-radius: 9999px;
+    padding: var(--space-1) var(--space-2);
+    color: var(--success);
+  }
+
+  // Deprecated: Coupons badge (now part of --group)
   &--coupons {
     background: var(--primary-very-low);
     border: 1px solid var(--primary-low);
@@ -216,6 +209,16 @@ span.merchant-badges {
     width: 1em;
     height: 1em;
     color: var(--primary);
+
+    // Verified icon: success green color
+    &--verified {
+      color: var(--success);
+    }
+
+    // Coupons icon: default primary color (inherits from parent)
+    &--coupons {
+      color: var(--primary);
+    }
   }
 
   &__count {
@@ -223,7 +226,6 @@ span.merchant-badges {
     align-items: center;
     justify-content: center;
     height: 1.25em;
-    margin-left: var(--space-1);
     border-radius: 9999px;
     background: transparent; // unified pill on container
     color: var(--primary);
