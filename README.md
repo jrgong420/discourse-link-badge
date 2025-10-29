@@ -76,6 +76,16 @@ coupons:
 | `verified_badge_icon` | string | `far-check-circle` | FontAwesome icon for verified badge |
 | `coupons_badge_icon` | string | `tags` | FontAwesome icon for coupons badge |
 
+
+### SVG Icon Subset
+
+Discourse only ships a subset of SVG icons to the client for performance. This component exposes a theme setting `svg_icons` (pipe-separated) so you can ensure any icons you need are included.
+
+- Defaults include: `copy`, `external-link-alt`, `arrow-up-right-from-square`, `tags`, `far-check-circle`.
+- Add additional icons by editing `svg_icons`, e.g. `external-link-alt|arrow-up-right-from-square|copy`.
+- Note: On newer Discourse/Font Awesome 6, `external-link-alt` was renamed to `arrow-up-right-from-square`. Include whichever applies to your site version.
+- Alternatively, admins can use the site setting “SVG icon subset” to add icons globally across the site.
+
 ### Modal Settings
 
 | Setting | Type | Default | Description |

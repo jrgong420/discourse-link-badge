@@ -280,11 +280,16 @@ function buildMerchantBadges(merchant, showVerified, showCoupons, modal, sourceU
     e.preventDefault();
     e.stopPropagation();
 
+    // Capture anchor text from the link element
+    const linkEl = e.target?.closest?.("a[href]");
+    const anchorText = linkEl?.dataset?.merchantAnchorText || "";
+
     if (debugModal) {
       // eslint-disable-next-line no-console
       console.log("[Merchant Modal] Click handler triggered", {
         merchant,
         sourceUrl,
+        anchorText,
         event: e,
       });
     }
@@ -294,12 +299,12 @@ function buildMerchantBadges(merchant, showVerified, showCoupons, modal, sourceU
       // eslint-disable-next-line no-console
       console.log("[Merchant Modal] Calling modal.show()", {
         component: "MerchantBadgeModal",
-        model: { merchant, sourceUrl },
+        model: { merchant, sourceUrl, anchorText },
       });
     }
 
     modal.show(MerchantBadgeModal, {
-      model: { merchant, sourceUrl },
+      model: { merchant, sourceUrl, anchorText },
     });
 
     if (debugModal) {
@@ -470,6 +475,12 @@ export default apiInitializer((api) => {
               // Mark as merchant link globally (used by CSS to hide click counters site-wide)
               link.setAttribute(MERCHANT_LINK_MARKER, "true");
 
+              // Capture anchor text for modal display
+              const anchorText = (link.textContent || "").trim();
+              if (anchorText) {
+                link.dataset.merchantAnchorText = anchorText;
+              }
+
               // Append badges only if allowed for this category and not already added
               if (!link.hasAttribute(BADGE_MARKER) && badgesAllowed) {
                 link.setAttribute(BADGE_MARKER, "true");
@@ -522,6 +533,12 @@ export default apiInitializer((api) => {
           if (merchant) {
             // Mark as merchant link globally (used by CSS to hide click counters site-wide)
             link.setAttribute(MERCHANT_LINK_MARKER, "true");
+
+            // Capture anchor text for modal display
+            const anchorText = (link.textContent || "").trim();
+            if (anchorText) {
+              link.dataset.merchantAnchorText = anchorText;
+            }
 
             // Append badges only if allowed for this category and not already added
             if (!link.hasAttribute(BADGE_MARKER) && badgesAllowed) {

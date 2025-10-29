@@ -21,6 +21,7 @@ en:
           one: "%{count} rating"
           other: "%{count} ratings"
         reviews_link: "Ratings"
+        display_reviews: "Display reviews"
         coupon:
           terms: "Terms"
           expires: "Expires"
@@ -42,5 +43,7 @@ en:
       merchant_link_style: "Visual style for merchant links (pill: rounded badge with shadow; underline: subtle underline with icon; label: soft filled label; ghost: outline-only with transparent background)"
       hide_click_counter_globally: "Hide Discourse's default click counter on matched merchant links site-wide (global; not limited by 'Verified links categories')"
       modal_follow_link_label: "Custom label for the modal's primary 'Follow Link' button (leave empty to use default translation)"
+      svg_icons: "Additional SVG icons to include in this theme's SVG subset (pipe-separated). Example: external-link-alt|arrow-up-right-from-square|copy"
+
       debug_logging_badges: "Enable verbose console logging for badge rendering and click events (for debugging)"
       debug_logging_modal: "Enable verbose console logging for modal opening, rendering, and data (for debugging)"

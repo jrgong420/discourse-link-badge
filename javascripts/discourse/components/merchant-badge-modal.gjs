@@ -33,7 +33,7 @@ export default class MerchantBadgeModal extends Component {
   constructor() {
     super(...arguments);
     this.loadUserProfile();
-    this.loadRating();
+    // Ratings temporarily disabled; only show link to review thread
   }
 
   get merchant() {
@@ -76,6 +76,11 @@ export default class MerchantBadgeModal extends Component {
     } catch {
       return this.sourceUrl;
     }
+  }
+
+  get sourceText() {
+    // Use anchor text if available, otherwise fall back to friendly label
+    return this.args.model?.anchorText || this.friendlyLinkLabel;
   }
 
   get followButtonLabel() {
@@ -323,63 +328,46 @@ export default class MerchantBadgeModal extends Component {
                 <div class="merchant-modal__user">
                   <a href={{this.profileUrl}} class="merchant-modal__user-link" target="_blank" rel="noopener noreferrer">
                     {{avatar this.merchantUser imageSize="medium"}}
-                    <span class="merchant-modal__username">{{this.merchantUser.username}}</span>
+                    <span class="merchant-modal__username">
+                      {{this.merchantUser.username}}
+                    </span>
                   </a>
-                </div>
-              {{else}}
-                <h3 class="merchant-modal__domain">{{this.displayName}}</h3>
-              {{/if}}
-
-              {{! Star Rating Display }}
-              {{#if this.hasRating}}
-                <div class="merchant-modal__rating" aria-label={{this.ratingAriaLabel}}>
-                  <div class="merchant-modal__rating-stars">
-                    {{#each this.fullStars}}
-                      <span class="merchant-modal__star merchant-modal__star--full">{{dIcon "star"}}</span>
-                    {{/each}}
-                    {{#if this.hasHalfStar}}
-                      <span class="merchant-modal__star merchant-modal__star--half">{{dIcon "star-half-alt"}}</span>
-                    {{/if}}
-                    {{#each this.emptyStars}}
-                      <span class="merchant-modal__star merchant-modal__star--empty">{{dIcon "far-star"}}</span>
-                    {{/each}}
-                  </div>
-                  <span class="merchant-modal__rating-value">{{this.ratingValue}}/5</span>
-                  {{#if this.hasShopReviewTopic}}
-                    <a href={{this.shopReviewUrl}} class="merchant-modal__review-link" target="_blank" rel="noopener noreferrer">
-                      {{this.shopReviewLinkText}}
-                    </a>
+                  {{#if this.merchant.verified}}
+                    <span
+                      class="merchant-modal__verified-container"
+                      title={{i18n (themePrefix "js.merchant.modal.verified")}}
+                      aria-label={{i18n (themePrefix "js.merchant.modal.verified")}}
+                    >
+                      <span class="merchant-modal__verified-icon">{{dIcon "circle-check"}}</span>
+                      <span class="merchant-modal__verified-label">{{i18n (themePrefix "js.merchant.modal.verified")}}</span>
+                    </span>
                   {{/if}}
                 </div>
-              {{else if this.hasShopReviewTopic}}
+              {{else}}
+                <div class="merchant-modal__domain-wrapper">
+                  <h3 class="merchant-modal__domain">{{this.displayName}}</h3>
+                  {{#if this.merchant.verified}}
+                    <span
+                      class="merchant-modal__verified-container"
+                      title={{i18n (themePrefix "js.merchant.modal.verified")}}
+                      aria-label={{i18n (themePrefix "js.merchant.modal.verified")}}
+                    >
+                      <span class="merchant-modal__verified-icon">{{dIcon "circle-check"}}</span>
+                      <span class="merchant-modal__verified-label">{{i18n (themePrefix "js.merchant.modal.verified")}}</span>
+                    </span>
+                  {{/if}}
+                </div>
+              {{/if}}
+
+              {{#if this.hasShopReviewTopic}}
                 <div class="merchant-modal__rating">
                   <a href={{this.shopReviewUrl}} class="merchant-modal__review-link" target="_blank" rel="noopener noreferrer">
-                    {{this.shopReviewLinkText}}
+                    {{i18n (themePrefix "js.merchant.modal.display_reviews")}}
                   </a>
                 </div>
               {{/if}}
             </div>
-
-            {{#if this.merchant.verified}}
-              <span class="merchant-modal__verified-badge merchant-modal__verified-badge--verified">
-                <span class="merchant-modal__icon">{{dIcon "far-check-circle"}}</span>
-                <span>{{i18n (themePrefix "js.merchant.modal.verified")}}</span>
-              </span>
-            {{else}}
-              <span class="merchant-modal__verified-badge merchant-modal__verified-badge--unverified">
-                <span>{{i18n (themePrefix "js.merchant.modal.unverified")}}</span>
-              </span>
-            {{/if}}
           </div>
-
-          {{! Source URL }}
-          {{#if this.sourceUrl}}
-            <div class="merchant-modal__source">
-              <a href={{this.sourceUrl}} target="_blank" rel="noopener noreferrer" class="merchant-modal__source-link">
-                {{this.sourceUrl}}
-              </a>
-            </div>
-          {{/if}}
 
           {{! Coupons Section }}
           {{#if this.hasCoupons}}
@@ -432,18 +420,16 @@ export default class MerchantBadgeModal extends Component {
             </div>
           {{/if}}
 
-          {{! Footer: Link Text and Follow Button }}
+          {{! Footer: Source Link and Follow Button }}
           {{#if this.sourceUrl}}
             <div class="merchant-modal__footer">
-              <div class="merchant-modal__link-hint">
-                <a href={{this.sourceUrl}} target="_blank" rel="noopener noreferrer" title={{this.sourceUrl}}>
-                  {{this.friendlyLinkLabel}}
-                </a>
+              <div class="merchant-modal__source">
+                {{this.sourceText}}
               </div>
 
               <DButton
                 @action={{this.openLink}}
-                @label={{this.followButtonLabel}}
+                @translatedLabel={{this.followButtonLabel}}
                 @icon="external-link-alt"
                 class="btn-primary merchant-modal__follow-btn"
               />

@@ -73,6 +73,12 @@ coupons_badge_icon:
   type: string
   default: "tags"
 
+svg_icons:
+  type: list
+  list_type: compact
+  default: "copy|external-link-alt|arrow-up-right-from-square|tags|far-check-circle"
+
+
 show_badge_labels:
   type: bool
   default: true
