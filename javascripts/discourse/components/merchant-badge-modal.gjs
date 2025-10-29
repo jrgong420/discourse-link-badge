@@ -1,5 +1,6 @@
 import Component from "@glimmer/component";
 import { tracked } from "@glimmer/tracking";
+import { on } from "@ember/modifier";
 import { action } from "@ember/object";
 import { service } from "@ember/service";
 import DButton from "discourse/components/d-button";
@@ -22,6 +23,7 @@ export default class MerchantBadgeModal extends Component {
   @tracked userLoading = false;
   @tracked ratingValue = null;
   @tracked ratingLoading = false;
+  @tracked ackWarning = false;
 
   getCouponButtonLabel = (couponCode) => {
     if (this.copiedCode === couponCode) {
@@ -84,11 +86,63 @@ export default class MerchantBadgeModal extends Component {
   }
 
   get followButtonLabel() {
+    if (this.isWarning) {
+      const customLabel = settings.warning_proceed_label?.trim();
+      if (customLabel) {
+        return customLabel;
+      }
+      return i18n(themePrefix("js.merchant.modal.proceed_anyway"));
+    }
+
     const customLabel = settings.modal_follow_link_label?.trim();
     if (customLabel) {
       return customLabel;
     }
     return i18n(themePrefix("js.merchant.modal.follow_link"));
+  }
+
+  get proceedDisabled() {
+    return this.isWarning && !this.ackWarning;
+  }
+
+  get showNoCoupons() {
+    return !this.hasCoupons && !this.isWarning;
+  }
+
+  get merchantStatus() {
+    // Resolve status with backward compatibility for legacy fields
+    const status = this.merchant?.verification_status;
+    if (status === "verified" || status === "warning" || status === "none") {
+      return status;
+    }
+    // Fallback to legacy boolean fields
+    if (this.merchant?.warning) {
+      return "warning";
+    }
+    if (this.merchant?.verified) {
+      return "verified";
+    }
+    return "none";
+  }
+
+  get isWarning() {
+    return this.merchantStatus === "warning";
+  }
+
+  get showVerifiedBadge() {
+    return this.merchantStatus === "verified";
+  }
+
+  get warningTitle() {
+    return i18n(themePrefix("js.merchant.modal.warning_title"));
+  }
+
+  get warningMessage() {
+    const customMessage = settings.warning_banner_message?.trim();
+    if (customMessage) {
+      return customMessage;
+    }
+    return i18n(themePrefix("js.merchant.modal.warning_message"));
   }
 
   get hasRating() {
@@ -312,15 +366,25 @@ export default class MerchantBadgeModal extends Component {
 
   @action
   openLink() {
+    // Guard: when warning is active, require acknowledgment before proceeding
+    if (this.isWarning && !this.ackWarning) {
+      return;
+    }
+
     if (this.sourceUrl) {
       window.open(this.sourceUrl, "_blank", "noopener,noreferrer");
     }
   }
 
+  @action
+  onAckChange(e) {
+    this.ackWarning = !!e?.target?.checked;
+  }
+
   <template>
     <DModal @title={{this.title}} @closeModal={{@closeModal}}>
       <:body>
-        <div class="merchant-modal">
+        <div class="merchant-modal {{if this.isWarning 'merchant-modal--warning'}}">
           {{! Header: User Profile or Domain with Rating }}
           <div class="merchant-modal__header">
             <div class="merchant-modal__title-section">
@@ -332,7 +396,7 @@ export default class MerchantBadgeModal extends Component {
                       {{this.merchantUser.username}}
                     </span>
                   </a>
-                  {{#if this.merchant.verified}}
+                  {{#if this.showVerifiedBadge}}
                     <span
                       class="merchant-modal__verified-container"
                       title={{i18n (themePrefix "js.merchant.modal.verified")}}
@@ -346,7 +410,7 @@ export default class MerchantBadgeModal extends Component {
               {{else}}
                 <div class="merchant-modal__domain-wrapper">
                   <h3 class="merchant-modal__domain">{{this.displayName}}</h3>
-                  {{#if this.merchant.verified}}
+                  {{#if this.showVerifiedBadge}}
                     <span
                       class="merchant-modal__verified-container"
                       title={{i18n (themePrefix "js.merchant.modal.verified")}}
@@ -368,6 +432,17 @@ export default class MerchantBadgeModal extends Component {
               {{/if}}
             </div>
           </div>
+
+          {{! Warning Banner }}
+          {{#if this.isWarning}}
+            <div class="merchant-modal__warning" role="alert">
+              <span class="merchant-modal__warning-icon">{{dIcon "circle-exclamation"}}</span>
+              <div class="merchant-modal__warning-content">
+                <strong>{{this.warningTitle}}</strong>
+                <div>{{this.warningMessage}}</div>
+              </div>
+            </div>
+          {{/if}}
 
           {{! Coupons Section }}
           {{#if this.hasCoupons}}
@@ -412,7 +487,9 @@ export default class MerchantBadgeModal extends Component {
                 {{/each}}
               </div>
             </div>
-          {{else}}
+          {{/if}}
+
+          {{#if this.showNoCoupons}}
             <div class="merchant-modal__section">
               <p class="merchant-modal__no-coupons">
                 {{i18n (themePrefix "js.merchant.modal.no_coupons")}}
@@ -427,11 +504,21 @@ export default class MerchantBadgeModal extends Component {
                 {{this.sourceText}}
               </div>
 
+              {{#if this.isWarning}}
+                <div class="merchant-modal__ack">
+                  <label class="merchant-modal__ack-label">
+                    <input type="checkbox" checked={{this.ackWarning}} {{on "change" this.onAckChange}} />
+                    {{i18n (themePrefix "js.merchant.modal.warning_ack_checkbox")}}
+                  </label>
+                </div>
+              {{/if}}
+
               <DButton
                 @action={{this.openLink}}
                 @translatedLabel={{this.followButtonLabel}}
                 @icon="external-link-alt"
                 class="btn-primary merchant-modal__follow-btn"
+                @disabled={{this.proceedDisabled}}
               />
             </div>
           {{/if}}

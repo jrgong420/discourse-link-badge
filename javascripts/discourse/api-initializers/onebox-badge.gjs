@@ -5,6 +5,7 @@ import MerchantBadgeModal from "../components/merchant-badge-modal";
 
 const BADGE_MARKER = "data-merchant-badges-added";
 const MERCHANT_LINK_MARKER = "data-merchant-link";
+const MERCHANT_WARNING_MARKER = "data-merchant-warning";
 
 // Known affiliate redirect patterns: tracking host -> parameter names containing target URL
 const TRACKING_PATTERNS = new Map([
@@ -266,13 +267,90 @@ function findMerchant(url, merchants, debug = false) {
   merchantCache.set(url, merchant || null);
   return merchant || null;
 }
+// Resolve merchant status with backward compatibility for legacy fields
+function resolveMerchantStatus(merchant) {
+  const status = merchant?.verification_status;
+  if (status === "verified" || status === "warning" || status === "none") {
+    return status;
+  }
+  if (merchant?.warning) {
+    return "warning";
+  }
+  if (merchant?.verified) {
+    return "verified";
+  }
+  return "none";
+}
+
+let warningClickBound = false;
+function bindWarningClickInterception(modal) {
+  if (warningClickBound) {
+    return;
+  }
+
+  document.addEventListener(
+    "click",
+    (e) => {
+      try {
+        const link = e.target?.closest?.("a[href]");
+        if (!link) return;
+        if (link.getAttribute(MERCHANT_WARNING_MARKER) !== "true") return;
+
+        // Don't interfere with clicks on the badges button (it manages its own modal)
+        if (e.target?.closest?.(".merchant-badge") || e.target?.closest?.(".merchant-badges")) {
+          return;
+        }
+
+        // Only intercept primary (left) clicks without modifier keys
+        if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) {
+          return;
+        }
+
+        e.preventDefault();
+        e.stopPropagation();
+
+        const sourceUrl = link.href;
+        const anchorText = link?.dataset?.merchantAnchorText || "";
+        const merchants = settings.merchants || [];
+        const merchant = findMerchant(sourceUrl, merchants, settings.debug_logging_badges);
+
+        if (settings.debug_logging_modal) {
+          // eslint-disable-next-line no-console
+          console.log("[Merchant Modal] Intercepted warning link click", { sourceUrl, merchant, anchorText });
+        }
+
+        if (merchant) {
+          modal.show(MerchantBadgeModal, {
+            model: { merchant, sourceUrl, anchorText },
+          });
+        }
+      } catch (err) {
+        if (settings.debug_logging_modal) {
+          // eslint-disable-next-line no-console
+          console.warn("[Merchant Modal] Warning click interception error", err);
+        }
+      }
+    },
+    true // capture phase so we run before navigation handlers
+  );
+
+  warningClickBound = true;
+}
+
 
 function buildMerchantBadges(merchant, showVerified, showCoupons, modal, sourceUrl, debugModal) {
-  const verifiedOn = !!showVerified && !!merchant?.verified;
+  const status = resolveMerchantStatus(merchant);
+  const showStatusBadges = !!settings.show_verification_badges;
+  const isVerified = status === "verified";
+  const isWarning = status === "warning";
+
+  const verifiedOn = showStatusBadges && !!showVerified && isVerified;
+  const warningOn = showStatusBadges && isWarning;
+
   const couponsCount = Array.isArray(merchant?.coupons) ? merchant.coupons.length : 0;
   const couponsOn = !!showCoupons && couponsCount > 0;
 
-  if (!verifiedOn && !couponsOn) {
+  if (!verifiedOn && !warningOn && !couponsOn) {
     return null;
   }
 
@@ -313,10 +391,13 @@ function buildMerchantBadges(merchant, showVerified, showCoupons, modal, sourceU
     }
   };
 
-  // Build combined aria-label from both states
+  // Build combined aria-label from all active states
   const ariaLabels = [];
   if (verifiedOn) {
     ariaLabels.push(i18n(themePrefix("js.merchant.verified_badge")));
+  }
+  if (warningOn) {
+    ariaLabels.push(i18n(themePrefix("js.merchant.warning_badge")));
   }
   if (couponsOn) {
     ariaLabels.push(i18n(themePrefix("js.merchant.coupons_badge"), { count: couponsCount }));
@@ -332,6 +413,19 @@ function buildMerchantBadges(merchant, showVerified, showCoupons, modal, sourceU
   btn.className = "merchant-badge merchant-badge--group";
   btn.setAttribute("aria-label", combinedAriaLabel);
   btn.title = combinedAriaLabel; // Tooltip on hover
+
+  // Warning icon (if enabled)
+  if (warningOn) {
+    const iconName = settings.warning_badge_icon || "circle-exclamation";
+    const iconSpan = document.createElement("span");
+    iconSpan.className = "merchant-badge__icon merchant-badge__icon--warning";
+    iconSpan.innerHTML = iconHTML(iconName);
+    const svg = iconSpan.querySelector("svg");
+    if (svg) {
+      svg.setAttribute("aria-hidden", "true");
+    }
+    btn.appendChild(iconSpan);
+  }
 
   // Verified icon (if enabled)
   if (verifiedOn) {
@@ -387,6 +481,9 @@ export default apiInitializer((api) => {
 
   // Get modal service once for all decorations
   const modal = api.container.lookup("service:modal");
+
+  // Intercept clicks on warned merchant links globally (once)
+  bindWarningClickInterception(modal);
 
   api.decorateCookedElement(
     (element, helper) => {
@@ -475,10 +572,32 @@ export default apiInitializer((api) => {
               // Mark as merchant link globally (used by CSS to hide click counters site-wide)
               link.setAttribute(MERCHANT_LINK_MARKER, "true");
 
+              // Mark warning state for styling and click interception
+              const status = resolveMerchantStatus(merchant);
+              if (status === "warning") {
+                link.setAttribute(MERCHANT_WARNING_MARKER, "true");
+              }
+
               // Capture anchor text for modal display
               const anchorText = (link.textContent || "").trim();
               if (anchorText) {
                 link.dataset.merchantAnchorText = anchorText;
+              }
+
+              // Also mark the onebox body title link so it inherits styling and click interception
+              const bodyTitleLink =
+                onebox.querySelector("article.onebox-body div h3 a[href]") ||
+                onebox.querySelector("article.onebox-body h3 a[href]");
+
+              if (bodyTitleLink) {
+                bodyTitleLink.setAttribute(MERCHANT_LINK_MARKER, "true");
+                if (status === "warning") {
+                  bodyTitleLink.setAttribute(MERCHANT_WARNING_MARKER, "true");
+                }
+                const bodyText = (bodyTitleLink.textContent || "").trim();
+                if (bodyText) {
+                  bodyTitleLink.dataset.merchantAnchorText = bodyText;
+                }
               }
 
               // Append badges only if allowed for this category and not already added
@@ -533,6 +652,12 @@ export default apiInitializer((api) => {
           if (merchant) {
             // Mark as merchant link globally (used by CSS to hide click counters site-wide)
             link.setAttribute(MERCHANT_LINK_MARKER, "true");
+
+            // Mark warning state for styling and click interception
+            const status = resolveMerchantStatus(merchant);
+            if (status === "warning") {
+              link.setAttribute(MERCHANT_WARNING_MARKER, "true");
+            }
 
             // Capture anchor text for modal display
             const anchorText = (link.textContent || "").trim();

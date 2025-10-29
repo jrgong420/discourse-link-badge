@@ -1,0 +1,35 @@
+de:
+  js:
+    merchant:
+      verified_badge: "Verifizierter Händler"
+      warning_badge: "Warnung zu diesem Händler"
+
+      coupons_badge:
+        one: "%{count} Gutschein verfügbar"
+        other: "%{count} Gutscheine verfügbar"
+
+      modal:
+        title: "Shop-Details: %{domain}"
+        verified: "Verifizierter Händler"
+        unverified: "Nicht verifiziert"
+        coupons_heading: "Verfügbare Gutscheine"
+        no_coupons: "Derzeit keine Gutscheine verfügbar"
+        copy_code: "Code kopieren"
+        copied: "Kopiert!"
+        shop_review: "Shop-Bewertung lesen"
+        follow_link: "Link folgen"
+        visit_domain: "Besuche %{domain}"
+        rating_label: "%{rating} von 5 Sternen"
+        reviews_count:
+          one: "%{count} Bewertung"
+          other: "%{count} Bewertungen"
+        reviews_link: "Bewertungen"
+        display_reviews: "Bewertungen anzeigen"
+        proceed_anyway: "Trotzdem fortfahren"
+        warning_title: "Bitte vor dem Fortfahren lesen"
+        warning_message: "Für diesen Händler liegen Warnhinweise aus der Community vor. Fortfahren auf eigenes Risiko."
+        warning_ack_checkbox: "Ich habe verstanden und möchte fortfahren"
+        coupon:
+          terms: "Bedingungen"
+          expires: "Gültig bis"
+

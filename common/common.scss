@@ -118,6 +118,24 @@
   }
 }
 
+// Warning-marked merchant links: make link text greyed/muted
+// Applied regardless of whether badges are rendered
+a[data-merchant-warning="true"],
+a[data-merchant-link="true"][data-merchant-warning="true"],
+.merchant-link--warning,
+aside.onebox header a[data-merchant-warning="true"],
+aside.onebox .source a[data-merchant-warning="true"] {
+  color: var(--primary-medium);
+  text-decoration-color: var(--primary-low);
+
+  &:hover,
+  &:focus {
+    color: var(--primary-medium);
+    text-decoration-color: var(--primary-low);
+  }
+}
+
+
 // Hide Discourse's default click counter on matched merchant links globally when setting is enabled
 @if $hide-click-counter-globally {
   a[data-merchant-link="true"][data-clicks]::after {
@@ -128,7 +146,6 @@
 // ============================================================================
 // Badge Container and Badge Elements (shared across all styles)
 // ============================================================================
-
 span.merchant-badges {
   font-weight: normal;
   color: var(--primary-medium);
@@ -160,6 +177,14 @@ span.merchant-badges {
     width: 1em;
     height: 1em;
     vertical-align: -0.125em;
+  }
+
+  // Icon color variants
+  .merchant-badge__icon--warning .d-icon {
+    color: var(--danger);
+  }
+  .merchant-badge__icon--verified .d-icon {
+    color: var(--success);
   }
 
   &:hover {
@@ -219,6 +244,11 @@ span.merchant-badges {
     &--coupons {
       color: var(--primary);
     }
+
+    // Warning icon: danger red color
+    &--warning {
+      color: var(--danger);
+    }
   }
 
   &__count {
@@ -246,7 +276,6 @@ span.merchant-badges {
 // ============================================================================
 // Merchant Modal Styles
 // ============================================================================
-
 .merchant-modal {
   padding: var(--space-3);
 
@@ -395,6 +424,41 @@ span.merchant-badges {
     font-weight: 500;
   }
 
+  &__warning {
+    display: flex;
+    gap: var(--space-2);
+    background-color: var(--danger-low);
+    border: 1px solid var(--danger-low-mid, var(--danger-low));
+    border-radius: var(--border-radius);
+    color: var(--danger);
+    padding: var(--space-2);
+    margin-bottom: var(--space-3);
+  }
+
+  &__warning-icon {
+    display: inline-flex;
+    align-items: flex-start;
+    justify-content: center;
+    flex-shrink: 0;
+    color: var(--danger);
+
+    svg {
+      width: 1.25em;
+      height: 1.25em;
+    }
+  }
+
+  &__warning-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    color: var(--danger);
+
+    strong {
+      font-weight: 600;
+    }
+  }
+
   &__section {
     margin-bottom: var(--space-3);
 
@@ -488,7 +552,28 @@ span.merchant-badges {
   &__follow-btn {
     min-width: 200px;
   }
+  // Warning variant: mute actionable colors
+  &--warning {
+    .merchant-modal__follow-btn {
+      background-color: var(--primary-very-low);
+      border-color: var(--primary-low);
+      color: var(--primary-medium);
+
+      &:hover,
+      &:focus {
+        background-color: var(--primary-low);
+        border-color: var(--primary-low);
+        color: var(--primary-medium);
+      }
+    }
+
+    .merchant-modal__source {
+      color: var(--primary-medium);
+    }
+  }
+
 }
+
 
 // Onebox-specific overrides: fix Discourse header icon margins
 // Core Discourse applies `margin-right: 5px; margin-top: 2px;` to all .d-icon in onebox headers,
@@ -508,4 +593,12 @@ aside.onebox {
       }
     }
   }
+
+  article.onebox-body {
+    a[data-merchant-warning="true"] {
+      color: var(--primary-medium);
+      text-decoration-color: var(--primary-low);
+    }
+  }
+
 }

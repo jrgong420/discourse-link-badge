@@ -10,9 +10,12 @@ merchants:
         required: true
         validations:
           min_length: 3
-      verified:
-        type: boolean
-        default: false
+      verification_status:
+        type: enum
+        choices:
+          - none
+          - verified
+          - warning
       user_id:
         type: integer
         default: 0
@@ -57,6 +60,10 @@ verified_links_categories:
   type: list
   default: ""
 
+show_verification_badges:
+  type: bool
+  default: true
+
 show_verified_badge:
   type: bool
   default: true
@@ -69,6 +76,10 @@ verified_badge_icon:
   type: string
   default: "far-check-circle"
 
+warning_badge_icon:
+  type: string
+  default: "circle-exclamation"
+
 coupons_badge_icon:
   type: string
   default: "tags"
@@ -76,7 +87,7 @@ coupons_badge_icon:
 svg_icons:
   type: list
   list_type: compact
-  default: "copy|external-link-alt|arrow-up-right-from-square|tags|far-check-circle"
+  default: "copy|external-link-alt|arrow-up-right-from-square|tags|far-check-circle|circle-exclamation"
 
 
 show_badge_labels:
@@ -105,5 +116,13 @@ debug_logging_modal:
   default: false
 
 modal_follow_link_label:
+  type: string
+  default: ""
+
+warning_banner_message:
+  type: string
+  default: ""
+
+warning_proceed_label:
   type: string
   default: ""

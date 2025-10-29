@@ -2,11 +2,18 @@ en:
   js:
     merchant:
       verified_badge: "Verified merchant"
+      warning_badge: "Warning on this merchant"
+
       coupons_badge:
         one: "%{count} coupon available"
         other: "%{count} coupons available"
       modal:
         title: "Shop details: %{domain}"
+        proceed_anyway: "Proceed anyway"
+        warning_title: "Please read before proceeding"
+        warning_message: "This merchant has warnings from our community. Proceed at your own risk."
+        warning_ack_checkbox: "I understand the risks and want to proceed"
+
         verified: "Verified merchant"
         unverified: "Unverified"
         coupons_heading: "Available coupons"
